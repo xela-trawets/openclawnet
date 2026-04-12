@@ -20,11 +20,11 @@ Welcome to OpenClawNet! This repository contains session materials and working c
 ## 📅 The 4-Session Journey (50 min each)
 
 ### Session 1: Foundation + Local Chat
-**Architecture, Ollama Provider, SignalR Streaming, Blazor UI**
+**Architecture, Local LLM Providers, SignalR Streaming, Blazor UI**
 
-Walk through a pre-built .NET 10 solution: model abstractions, Ollama integration with SSE streaming, EF Core storage, Gateway API, and a real-time Blazor chat UI — all orchestrated with Aspire.
+Walk through a pre-built .NET 10 solution: model abstractions, local LLM integration (Ollama/Foundry Local) with SSE streaming, EF Core storage, Gateway API, and a real-time Blazor chat UI — all orchestrated with Aspire.
 
-- 📊 [Slides](sessions/session-1/slides.html) · 📝 [Speaker Script](sessions/session-1/speaker-script.md) · 🤖 [Copilot Prompts](sessions/session-1/copilot-prompts.md)
+- 📊 [Slides](sessions/session-1/slides.html) · 💻 [Code](sessions/session-1/code/) · 🤖 [Copilot Prompts](sessions/session-1/copilot-prompts.md)
 - 🇺🇸 [Register](https://developer.microsoft.com/en-us/reactor/events/26919/) · 🇪🇸 [Registrarse](https://developer.microsoft.com/en-us/reactor/events/26923/)
 
 ---
@@ -66,10 +66,10 @@ Connect Azure OpenAI and Foundry providers, add cron-based job scheduling, run t
 git clone https://github.com/elbruno/openclawnet.git
 cd openclawnet
 
-# Build and run (requires .NET 10 SDK + Ollama)
-dotnet build
-cd src/OpenClawNet.AppHost
-dotnet run
+# Build and run (requires .NET 10 SDK + Local LLM)
+# Navigate to any session's stage-3-final:
+cd sessions/session-1/code/stage-3-final
+dotnet run --project src/OpenClawNet.AppHost
 ```
 
 The Aspire dashboard opens at `https://localhost:15888` — from there you can access the Gateway and Blazor Web UI.
@@ -80,7 +80,7 @@ The Aspire dashboard opens at `https://localhost:15888` — from there you can a
 
 - **.NET 10 SDK** — [Download](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 - **VS Code + GitHub Copilot** — [Setup](https://github.com/features/copilot)
-- **Ollama** — [Download](https://ollama.ai/) (run `ollama pull phi4-mini` to test)
+- **Ollama** — [Download](https://ollama.ai/) or **Foundry Local** — [Docs](https://devblogs.microsoft.com/foundry/foundry-local-ga/) (run `ollama pull phi4-mini` or use Foundry Local SDK)
 - **Docker** — [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
 For Session 4 (optional): **Azure subscription** — [Free account](https://azure.microsoft.com/free/)
@@ -95,8 +95,8 @@ Blazor Web UI ──SignalR──▶ Gateway API ──▶ Agent Orchestrator
                            ┌──────────────────┼──────────────┐
                            ▼                  ▼              ▼
                      Model Provider      Tool Framework   Skills System
-                     (Ollama/Azure/      (File/Shell/     (Markdown +
-                      Foundry)            Web/Schedule)    YAML)
+                     (Ollama/Foundry     (File/Shell/     (Markdown +
+                      Local/Azure)        Web/Schedule)    YAML)
                                               │
                                               ▼
                                          SQLite Storage
@@ -117,7 +117,7 @@ Each session uses an **Explain → Explore → Extend** approach:
 The code grows incrementally:
 | After Session | What's in the repo |
 |---------------|-------------------|
-| **1** | Chatbot: Models, Ollama, Storage, Gateway, Blazor, Aspire |
+| **1** | Chatbot: Models, Local LLMs, Storage, Gateway, Blazor, Aspire |
 | **2** | + Agent: Tools framework, security gates, agent loop |
 | **3** | + Personality: Skills system, memory, summarization |
 | **4** | + Production: Cloud providers, scheduling, tests |
@@ -128,7 +128,7 @@ The code grows incrementally:
 
 - **Discord:** [Azure AI Community](https://aka.ms/ai-discord/dotnet) (.NET channel)
 - **Issues:** [Open an issue](https://github.com/elbruno/openclawnet/issues)
-- **Resources:** [Generative AI for Beginners .NET](https://aka.ms/genainet) · [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/)
+- **Resources:** [Generative AI for Beginners .NET](https://aka.ms/genainet) · [Aspire](https://aspire.dev)
 
 ---
 
