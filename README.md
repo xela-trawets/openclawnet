@@ -15,6 +15,17 @@ Welcome to OpenClawNet! This repository contains session materials and working c
 
 ---
 
+## 📺 Reactor Series — Register Now!
+
+This is a **Microsoft Reactor live series**. Register and attend live, or watch the recordings after each session.
+
+| Language | Series Page |
+|----------|------------|
+| 🇺🇸 **English** | [Building an AI Agent Platform in .NET 10 with GitHub Copilot](https://developer.microsoft.com/en-us/reactor/series/s-1652/) |
+| 🇪🇸 **Español** | [Construye una Plataforma de Agentes AI en .NET 10 con GitHub Copilot](https://developer.microsoft.com/en-us/reactor/series/S-1653/) |
+
+---
+
 ## 📅 The 4-Session Structure
 
 ### **Session 1: From Zero to ChatBot in 60 Minutes**
@@ -25,6 +36,7 @@ Start with an empty .NET solution and build a working chat UI in one hour. You'l
 - **Topics:** Project setup, Aspire, Minimal APIs, Blazor, SignalR
 - **Hands-on:** Build and run the chat interface
 - **Outcome:** Real-time client-server messaging layer ready for AI
+- 🇺🇸 [Register (English)](https://developer.microsoft.com/en-us/reactor/events/26919/) · 🇪🇸 [Registrarse (Español)](https://developer.microsoft.com/en-us/reactor/events/26923/)
 
 ---
 
@@ -36,6 +48,7 @@ Connect an AI model and teach it to use tools. Build the Agent Orchestrator, int
 - **Topics:** Agent orchestration, model integration, tool registry, tool calling loops
 - **Hands-on:** Prompt the AI to execute real tasks
 - **Outcome:** Agentic behavior with constrained tool access
+- 🇺🇸 [Register (English)](https://developer.microsoft.com/en-us/reactor/events/26920/) · 🇪🇸 [Registrarse (Español)](https://developer.microsoft.com/en-us/reactor/events/26924/)
 
 ---
 
@@ -47,6 +60,7 @@ Build skills (reusable AI behaviors) and add persistent memory. Store conversati
 - **Topics:** Skills framework, conversation memory, embeddings, EF Core + SQLite
 - **Hands-on:** Create custom skills and persistent message history
 - **Outcome:** Stateful, context-aware agent behavior
+- 🇺🇸 [Register (English)](https://developer.microsoft.com/en-us/reactor/events/26921/) · 🇪🇸 [Registrarse (Español)](https://developer.microsoft.com/en-us/reactor/events/26925/)
 
 ---
 
@@ -58,6 +72,7 @@ Deploy to Azure and scale with Microsoft Foundry. Set up GitHub Actions pipeline
 - **Topics:** Docker, Azure deployment, CI/CD, Microsoft Foundry, observability
 - **Hands-on:** Deploy locally, push to Azure, use Foundry dashboard
 - **Outcome:** Cloud-ready, monitored agent platform
+- 🇺🇸 [Register (English)](https://developer.microsoft.com/en-us/reactor/events/26922/) · 🇪🇸 [Registrarse (Español)](https://developer.microsoft.com/en-us/reactor/events/26926/)
 
 ---
 
@@ -164,7 +179,7 @@ Full documentation is in the [`docs/`](./docs/) folder:
 
 ## 🤝 Community & Support
 
-- **Live Sessions:** Register at [Microsoft Reactor](https://reactor.microsoft.com/)
+- **Live Sessions:** Register — [🇺🇸 English Series](https://developer.microsoft.com/en-us/reactor/series/s-1652/) · [🇪🇸 Serie en Español](https://developer.microsoft.com/en-us/reactor/series/S-1653/)
 - **Issues & Questions:** Open an issue in this repository
 - **Feedback:** We'd love to hear how this series helped you
 
