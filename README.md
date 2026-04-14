@@ -1,8 +1,8 @@
-# 🦀 OpenClawNet
+# 🦀 OpenClaw .NET
 
 **Build an AI Agent Platform in .NET 10 with GitHub Copilot**
 
-Welcome to OpenClawNet! This repository contains session materials and working code from the **Microsoft Reactor live series** on building production-ready AI agents using .NET 10, Blazor, and GitHub Copilot.
+Welcome to OpenClaw .NET! This repository contains session materials and working code from the **Microsoft Reactor live series** on building production-ready AI agents using .NET 10, Blazor, and GitHub Copilot.
 
 > **📌 This repo grows with each session.** Code is added incrementally — after Session 1, you'll have a working chatbot. By Session 4, a full AI agent platform.
 
