@@ -88,7 +88,7 @@ See the **What's Where** section in [SETUP.md](./SETUP.md#11-whats-where) for a 
 
 ## 💬 Community
 
-- **Discord:** [Azure AI Community](https://aka.ms/ai-discord/dotnet) (.NET channel)
+- **Discord:** [Microsoft Foundry Community](https://aka.ms/ai-discord/dotnet) (.NET channel)
 - **Issues:** [Open an issue](https://github.com/elbruno/openclawnet/issues)
 - **Resources:** [Generative AI for Beginners .NET](https://aka.ms/genainet) · [.NET Aspire](https://aspire.dev)
 
