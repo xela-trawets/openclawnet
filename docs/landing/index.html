@@ -10,24 +10,89 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* Default = dark (matches existing test-dashboard look) */
 :root{
   --primary:#512BD4;--primary-light:#7C5CFC;
   --coral:#E8590C;--teal:#0891B2;--teal-light:#22D3EE;
-  --dark-bg:#0C0A1A;--surface:#1A1630;--surface-2:#241F3E;
+  --bg:#0C0A1A;
+  --surface:#1A1630;--surface-2:#241F3E;
   --text:#E8E6F0;--muted:#8B85A8;
-  --radius:14px;--radius-sm:8px;
+  --border:rgba(124,92,252,0.18);
+  --glass-bg:rgba(26,22,48,0.7);
+  --hero-glow-1:rgba(81,43,212,0.25);
+  --hero-glow-2:rgba(8,145,178,0.12);
+  --tile-bg:#1A1630;
+  --switch-bg:rgba(127,127,127,.12);
+  --switch-border:rgba(127,127,127,.25);
+  --switch-active:rgba(124,92,252,.25);
+  --switch-active-border:rgba(124,92,252,.55);
+  --radius:14px;
   --gradient-hero:linear-gradient(135deg,#512BD4 0%,#7C5CFC 40%,#0891B2 100%);
   --gradient-accent:linear-gradient(90deg,#512BD4 0%,#0891B2 50%,#E8590C 100%);
-  --glass-bg:rgba(26,22,48,0.7);--glass-border:rgba(124,92,252,0.18);
+  color-scheme:dark;
 }
+
+/* Light = system preference */
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#F7F5FF;
+    --surface:#FFFFFF;--surface-2:#F3F0FF;
+    --text:#1F1B3A;--muted:#6B6688;
+    --border:rgba(81,43,212,0.18);
+    --glass-bg:rgba(255,255,255,0.85);
+    --hero-glow-1:rgba(124,92,252,0.18);
+    --hero-glow-2:rgba(8,145,178,0.10);
+    --tile-bg:#FFFFFF;
+    --switch-bg:rgba(81,43,212,.08);
+    --switch-border:rgba(81,43,212,.18);
+    --switch-active:rgba(124,92,252,.22);
+    --switch-active-border:rgba(81,43,212,.55);
+    color-scheme:light;
+  }
+}
+
+/* User-selected via switcher (overrides system) */
+html.theme-light{
+  --bg:#F7F5FF;
+  --surface:#FFFFFF;--surface-2:#F3F0FF;
+  --text:#1F1B3A;--muted:#6B6688;
+  --border:rgba(81,43,212,0.18);
+  --glass-bg:rgba(255,255,255,0.85);
+  --hero-glow-1:rgba(124,92,252,0.18);
+  --hero-glow-2:rgba(8,145,178,0.10);
+  --tile-bg:#FFFFFF;
+  --switch-bg:rgba(81,43,212,.08);
+  --switch-border:rgba(81,43,212,.18);
+  --switch-active:rgba(124,92,252,.22);
+  --switch-active-border:rgba(81,43,212,.55);
+  color-scheme:light;
+}
+html.theme-dark{
+  --bg:#0C0A1A;
+  --surface:#1A1630;--surface-2:#241F3E;
+  --text:#E8E6F0;--muted:#8B85A8;
+  --border:rgba(124,92,252,0.18);
+  --glass-bg:rgba(26,22,48,0.7);
+  --hero-glow-1:rgba(81,43,212,0.25);
+  --hero-glow-2:rgba(8,145,178,0.12);
+  --tile-bg:#1A1630;
+  --switch-bg:rgba(127,127,127,.12);
+  --switch-border:rgba(127,127,127,.25);
+  --switch-active:rgba(124,92,252,.25);
+  --switch-active-border:rgba(124,92,252,.55);
+  color-scheme:dark;
+}
+
 html{scroll-behavior:smooth}
 body{
   font-family:"Inter",system-ui,sans-serif;
-  background:var(--dark-bg);color:var(--text);
+  background:var(--bg);color:var(--text);
   line-height:1.6;min-height:100vh;
+  transition:background .25s ease,color .25s ease;
   background-image:
-    radial-gradient(ellipse 80% 60% at 50% -20%,rgba(81,43,212,0.25),transparent),
-    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(8,145,178,0.12),transparent);
+    radial-gradient(ellipse 80% 60% at 50% -20%,var(--hero-glow-1),transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%,var(--hero-glow-2),transparent);
 }
 .wrap{max-width:1080px;margin:0 auto;padding:64px 24px 96px}
 header{text-align:center;margin-bottom:64px}
@@ -46,7 +111,7 @@ h1{
   transition:transform .15s ease,box-shadow .15s ease;
 }
 .btn-primary{background:var(--gradient-hero);color:#fff;box-shadow:0 8px 24px rgba(81,43,212,.35)}
-.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--glass-border)}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
 .btn:hover{transform:translateY(-2px)}
 .section-title{
   font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;
@@ -55,7 +120,7 @@ h1{
 section{margin-bottom:56px}
 .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
 .card{
-  background:var(--glass-bg);border:1px solid var(--glass-border);
+  background:var(--glass-bg);border:1px solid var(--border);
   border-radius:var(--radius);padding:24px;
   text-decoration:none;color:inherit;
   display:flex;flex-direction:column;gap:10px;
@@ -66,9 +131,9 @@ section{margin-bottom:56px}
   content:"";position:absolute;top:0;left:0;right:0;height:3px;
   background:var(--gradient-accent);opacity:.7;
 }
-.card:hover{transform:translateY(-3px);border-color:rgba(124,92,252,.45);background:rgba(36,31,62,.85)}
+.card:hover{transform:translateY(-3px);border-color:rgba(124,92,252,.45)}
 .card .num{
-  font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--teal-light);
+  font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--teal);
   letter-spacing:.1em;
 }
 .card h3{font-size:20px;font-weight:700;margin:2px 0 4px}
@@ -76,9 +141,10 @@ section{margin-bottom:56px}
 .card .arrow{color:var(--primary-light);font-size:14px;font-weight:600}
 .card.disabled{opacity:.5;pointer-events:none}
 .card.disabled .arrow{color:var(--muted)}
+
 .row{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
 .tile{
-  background:var(--surface);border:1px solid var(--glass-border);
+  background:var(--tile-bg);border:1px solid var(--border);
   border-radius:var(--radius);padding:22px;text-decoration:none;color:inherit;
   display:flex;align-items:center;gap:14px;
   transition:transform .15s ease,border-color .15s ease;
@@ -87,21 +153,51 @@ section{margin-bottom:56px}
 .tile .icon{font-size:28px;line-height:1}
 .tile .t{font-weight:600}
 .tile .s{color:var(--muted);font-size:13px}
+
 footer{
   text-align:center;color:var(--muted);font-size:13px;
-  padding-top:32px;border-top:1px solid var(--glass-border);
+  padding-top:32px;border-top:1px solid var(--border);
 }
 footer a{color:var(--primary-light);text-decoration:none}
 footer a:hover{text-decoration:underline}
-.lang{display:inline-flex;gap:8px;margin-top:8px}
+.lang{display:inline-flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
 .lang a{
   font-size:13px;color:var(--text);text-decoration:none;
-  padding:4px 10px;border-radius:999px;border:1px solid var(--glass-border);
+  padding:4px 10px;border-radius:999px;border:1px solid var(--border);
 }
 .lang a:hover{border-color:var(--primary-light)}
+
+/* Theme switcher (top-right) */
+#oc-theme-switcher{
+  position:fixed;top:14px;right:14px;z-index:9999;
+  display:inline-flex;gap:4px;padding:4px;
+  background:var(--switch-bg);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid var(--switch-border);border-radius:999px;
+  font:14px/1 system-ui,sans-serif;
+}
+#oc-theme-switcher button{
+  appearance:none;border:0;background:transparent;color:inherit;
+  width:32px;height:32px;border-radius:50%;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:background .15s ease,transform .1s ease;font-size:16px;
+}
+#oc-theme-switcher button:hover{background:rgba(127,127,127,.18)}
+#oc-theme-switcher button:active{transform:scale(.92)}
+#oc-theme-switcher button[aria-pressed="true"]{
+  background:var(--switch-active);box-shadow:inset 0 0 0 1px var(--switch-active-border);
+}
+@media print{#oc-theme-switcher{display:none!important}}
 </style>
 </head>
 <body>
+
+<div id="oc-theme-switcher" role="group" aria-label="Color theme">
+  <button data-theme="light"  title="Light" aria-label="Light">☀️</button>
+  <button data-theme="dark"   title="Dark"  aria-label="Dark">🌙</button>
+  <button data-theme="system" title="System (default)" aria-label="System">💻</button>
+</div>
+
 <div class="wrap">
 
 <header>
@@ -119,7 +215,7 @@ footer a:hover{text-decoration:underline}
 </header>
 
 <section>
-  <div class="section-title">🎤 Session Slides</div>
+  <div class="section-title">🎤 Session Slides · English</div>
   <div class="grid">
     <a class="card" href="./sessions/session-1/slides.html">
       <span class="num">SESSION 01</span>
@@ -145,6 +241,54 @@ footer a:hover{text-decoration:underline}
       <p>Cloud providers, job scheduling, production readiness. Coming soon.</p>
       <span class="arrow">Coming soon</span>
     </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-title">🇪🇸 Recursos en Español</div>
+  <div class="row">
+    <a class="tile" href="https://developer.microsoft.com/en-us/reactor/series/S-1653/">
+      <span class="icon">🎟️</span>
+      <div>
+        <div class="t">Inscripción a la Serie</div>
+        <div class="s">Microsoft Reactor — registro gratuito (4 sesiones)</div>
+      </div>
+    </a>
+    <a class="tile" href="https://github.com/elbruno/openclawnet/blob/main/sessions/session-1/guide-es.md">
+      <span class="icon">📘</span>
+      <div>
+        <div class="t">Sesión 1 — Guía</div>
+        <div class="s">Fundamentos + Chat local (Markdown)</div>
+      </div>
+    </a>
+    <a class="tile" href="https://github.com/elbruno/openclawnet/blob/main/sessions/session-2-guide-es.md">
+      <span class="icon">📘</span>
+      <div>
+        <div class="t">Sesión 2 — Guía</div>
+        <div class="s">Herramientas + Flujos de agente</div>
+      </div>
+    </a>
+    <a class="tile" href="https://github.com/elbruno/openclawnet/blob/main/sessions/session-3-guide-es.md">
+      <span class="icon">📗</span>
+      <div>
+        <div class="t">Sesión 3 — Guía</div>
+        <div class="s">Skills + Memoria</div>
+      </div>
+    </a>
+    <a class="tile" href="https://github.com/elbruno/openclawnet/blob/main/sessions/session-4-guide-es.md">
+      <span class="icon">📗</span>
+      <div>
+        <div class="t">Sesión 4 — Guía</div>
+        <div class="s">Automatización + Cloud</div>
+      </div>
+    </a>
+    <a class="tile" href="https://github.com/elbruno/openclawnet">
+      <span class="icon">💻</span>
+      <div>
+        <div class="t">Código fuente</div>
+        <div class="s">Repositorio público en GitHub</div>
+      </div>
+    </a>
   </div>
 </section>
 
@@ -181,5 +325,39 @@ footer a:hover{text-decoration:underline}
 </footer>
 
 </div>
+
+<script>
+(function(){
+  var KEY='oc-theme';
+  var root=document.documentElement;
+  function apply(t){
+    root.classList.remove('theme-light','theme-dark');
+    if(t==='light')root.classList.add('theme-light');
+    else if(t==='dark')root.classList.add('theme-dark');
+    var btns=document.querySelectorAll('#oc-theme-switcher button');
+    for(var i=0;i<btns.length;i++){
+      btns[i].setAttribute('aria-pressed', btns[i].getAttribute('data-theme')===t ? 'true' : 'false');
+    }
+  }
+  function init(){
+    var saved=null;
+    try{saved=localStorage.getItem(KEY);}catch(e){}
+    apply(saved==='light'||saved==='dark' ? saved : 'system');
+    var btns=document.querySelectorAll('#oc-theme-switcher button');
+    for(var i=0;i<btns.length;i++){
+      btns[i].addEventListener('click',function(){
+        var t=this.getAttribute('data-theme');
+        try{
+          if(t==='system')localStorage.removeItem(KEY);
+          else localStorage.setItem(KEY,t);
+        }catch(e){}
+        apply(t);
+      });
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
 </body>
 </html>
