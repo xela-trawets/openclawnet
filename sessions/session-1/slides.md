@@ -13,6 +13,14 @@ size: 16:9
 
 **Microsoft Reactor Series · 75–90 min · Intermediate .NET**
 
+<br>
+
+**Bruno Capuano** — Principal Cloud Advocate, Microsoft
+[github.com/elbruno](https://github.com/elbruno) · [@elbruno](https://twitter.com/elbruno)
+
+**Pablo Nunes** — Co-presenter
+[linkedin.com/in/pablonuneslopes](https://www.linkedin.com/in/pablonuneslopes/)
+
 ---
 
 ## Why this series exists
@@ -281,5 +289,13 @@ Then:
 
 # Questions?
 
-elbruno/openclawnet · MIT licensed · contributions welcome
+**Bruno Capuano** — Principal Cloud Advocate, Microsoft
+[github.com/elbruno](https://github.com/elbruno) · [@elbruno](https://twitter.com/elbruno)
+
+**Pablo Nunes** — Co-presenter
+[linkedin.com/in/pablonuneslopes](https://www.linkedin.com/in/pablonuneslopes/)
+
+<br>
+
+`elbruno/openclawnet` · MIT licensed · contributions welcome
 

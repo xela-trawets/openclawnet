@@ -22,6 +22,9 @@ footer: "OpenClawNet · Session 2 · Tools & Agent Workflows"
 **Bruno Capuano** — Principal Cloud Advocate, Microsoft
 [github.com/elbruno](https://github.com/elbruno) · [@elbruno](https://twitter.com/elbruno)
 
+**Pablo Nunes** — Co-presenter
+[linkedin.com/in/pablonuneslopes](https://www.linkedin.com/in/pablonuneslopes/)
+
 <!--
 SPEAKER NOTES — title slide.
 Hi everyone, welcome back. Session 1 we got a real Blazor + Aspire app talking to local and cloud LLMs. Today we close the gap between "chatbot" and "agent": we give the model the ability to actually DO things — read files, run shells, call APIs, even launch other agents. We'll do it twice: with our own ITool framework AND with MCP servers. Same agent. Same approval gate. One mental model.
@@ -780,6 +783,9 @@ Session 3 is about memory — we've been keeping every message in a list this wh
 
 **Bruno Capuano** — Principal Cloud Advocate, Microsoft
 [github.com/elbruno](https://github.com/elbruno) · [@elbruno](https://twitter.com/elbruno)
+
+**Pablo Nunes** — Co-presenter
+[linkedin.com/in/pablonuneslopes](https://www.linkedin.com/in/pablonuneslopes/)
 
 <br>
 
