@@ -1,0 +1,76 @@
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">🦞 OpenClaw .NET</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-chat-dots-fill" aria-hidden="true"></span> Chat
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="sessions">
+                <span class="bi bi-clock-history" aria-hidden="true"></span> Sessions
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="jobs">
+                <span class="bi bi-calendar-check" aria-hidden="true"></span> Jobs
+            </NavLink>
+        </div>
+        <div class="nav-item px-3 nav-sub">
+            <NavLink class="nav-link" href="jobs/templates">
+                <span class="bi bi-file-earmark-text" aria-hidden="true"></span> Job Templates
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="health">
+                <span class="bi bi-heart-pulse" aria-hidden="true"></span> Health
+            </NavLink>
+        </div>
+
+        <div class="nav-section-label px-3">SUPPORT</div>
+        <div class="nav-item px-3 nav-sub">
+            <NavLink class="nav-link" href="tools">
+                <span class="bi bi-tools" aria-hidden="true"></span> Tools
+            </NavLink>
+        </div>
+        <div class="nav-item px-3 nav-sub">
+            <NavLink class="nav-link" href="mcp-tools">
+                <span class="bi bi-plug-fill" aria-hidden="true"></span> MCP Tools
+            </NavLink>
+        </div>
+        <div class="nav-item px-3 nav-sub">
+            <NavLink class="nav-link" href="tool-log">
+                <span class="bi bi-journal-text" aria-hidden="true"></span> Tool Log
+            </NavLink>
+        </div>
+        <div class="nav-item px-3 nav-sub">
+            <NavLink class="nav-link" href="skills">
+                <span class="bi bi-lightbulb-fill" aria-hidden="true"></span> Skills
+            </NavLink>
+        </div>
+
+        <div class="nav-section-label px-3">SETTINGS</div>
+        <div class="nav-item px-3 nav-sub">
+            <NavLink class="nav-link" href="model-providers">
+                <span class="bi bi-hdd-rack" aria-hidden="true"></span> Model Providers
+            </NavLink>
+        </div>
+        <div class="nav-item px-3 nav-sub">
+            <NavLink class="nav-link" href="agent-profiles">
+                <span class="bi bi-person-gear" aria-hidden="true"></span> Agent Profiles
+            </NavLink>
+        </div>
+        <div class="nav-item px-3 nav-sub">
+            <NavLink class="nav-link" href="settings">
+                <span class="bi bi-gear-fill" aria-hidden="true"></span> General
+            </NavLink>
+        </div>
+    </nav>
+</div>

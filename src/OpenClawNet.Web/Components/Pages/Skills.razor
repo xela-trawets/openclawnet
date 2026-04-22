@@ -1,0 +1,243 @@
+@page "/skills"
+@rendermode InteractiveServer
+@inject IConfiguration Configuration
+@inject IHttpClientFactory HttpClientFactory
+
+<PageTitle>OpenClaw .NET - Skills</PageTitle>
+
+<h3>Skills</h3>
+
+<p class="text-muted">
+    Skills are markdown-based instructions that customize the agent's behavior.
+    You can enable/disable built-in skills or install skills from the community marketplace.
+</p>
+
+@* Tabs *@
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <button class="nav-link @(_tab == "installed" ? "active" : "")" @onclick='() => SetTab("installed")'>
+            📦 Installed <span class="badge bg-secondary ms-1">@_skills.Count</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link @(_tab == "marketplace" ? "active" : "")" @onclick='() => LoadMarketplace()'>
+            🛒 Marketplace
+            @if (_marketplaceLoading) { <span class="spinner-border spinner-border-sm ms-1"></span> }
+        </button>
+    </li>
+</ul>
+
+@if (_tab == "installed")
+{
+    <div class="mb-3 d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" @onclick="ReloadSkills" disabled="@_loading">
+            @if (_loading) { <span class="spinner-border spinner-border-sm me-1"></span> } 🔄 Reload
+        </button>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="text-muted">Loading skills…</div>
+    }
+    else if (_skills.Count == 0)
+    {
+        <div class="alert alert-info">
+            No skills installed yet. Visit the <button class="btn btn-link p-0 align-baseline" @onclick="LoadMarketplace">Marketplace</button> to install community skills.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var skill in _skills)
+            {
+                <div class="col-md-6">
+                    <div class="card h-100 @(!skill.Enabled ? "border-secondary opacity-75" : "")">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title">@skill.Name</h5>
+                                <div class="d-flex gap-1 align-items-center">
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" checked="@skill.Enabled"
+                                               @onchange="() => ToggleSkill(skill)" />
+                                    </div>
+                                    @if (skill.Source == "installed")
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm py-0 px-1" title="Uninstall"
+                                                @onclick="() => UninstallSkill(skill.Name)">🗑</button>
+                                    }
+                                </div>
+                            </div>
+                            <p class="card-text small">@skill.Description</p>
+                            @if (!string.IsNullOrEmpty(skill.Category))
+                            {
+                                <span class="badge bg-secondary me-1">@skill.Category</span>
+                            }
+                            @foreach (var tag in skill.Tags)
+                            {
+                                <span class="badge bg-info me-1">@tag</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+else if (_tab == "marketplace")
+{
+    @if (_marketplaceError is not null)
+    {
+        <div class="alert alert-danger">@_marketplaceError</div>
+    }
+
+    @if (_marketplaceLoading)
+    {
+        <div class="text-muted">Fetching community skills from GitHub…</div>
+    }
+    else if (_marketplaceSkills.Count == 0 && _marketplaceError is null)
+    {
+        <div class="text-muted">No marketplace skills found.</div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var ms in _marketplaceSkills)
+            {
+                var isInstalled = _skills.Any(s => s.Name.Equals(ms.Name, StringComparison.OrdinalIgnoreCase));
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title">@ms.Name</h5>
+                                @if (isInstalled)
+                                {
+                                    <span class="badge bg-success">✓ Installed</span>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-primary" @onclick="() => InstallMarketplaceSkill(ms)"
+                                            disabled="@_installing.Contains(ms.Name)">
+                                        @if (_installing.Contains(ms.Name))
+                                        { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                        Install
+                                    </button>
+                                }
+                            </div>
+                            <p class="card-text small text-muted">
+                                <a href="@ms.GitHubUrl" target="_blank" rel="noopener">View on GitHub ↗</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    private string _tab = "installed";
+    private List<SkillRow> _skills = [];
+    private List<MarketplaceItem> _marketplaceSkills = [];
+    private HashSet<string> _installing = new(StringComparer.OrdinalIgnoreCase);
+    private bool _loading;
+    private bool _marketplaceLoading;
+    private string? _marketplaceError;
+    private string _gatewayUrl = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _gatewayUrl = Configuration["GatewayUrl"] ?? "https://localhost:7295";
+        await LoadSkillsAsync();
+    }
+
+    private async Task LoadSkillsAsync()
+    {
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var defs = await client.GetFromJsonAsync<SkillDefinitionDto[]>("api/skills") ?? [];
+            _skills = defs.Select(d => new SkillRow(d.Name, d.Description ?? "", d.Category, d.Enabled, d.Tags ?? [], d.Source ?? "built-in")).ToList();
+        }
+        catch { /* gateway may be offline */ }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ReloadSkills()
+    {
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            await client.PostAsync("api/skills/reload", null);
+        }
+        catch { }
+        await LoadSkillsAsync();
+    }
+
+    private async Task ToggleSkill(SkillRow skill)
+    {
+        var client = HttpClientFactory.CreateClient("gateway");
+        var endpoint = skill.Enabled ? $"api/skills/{skill.Name}/disable" : $"api/skills/{skill.Name}/enable";
+        await client.PostAsync(endpoint, null);
+        await LoadSkillsAsync();
+    }
+
+    private async Task UninstallSkill(string name)
+    {
+        var client = HttpClientFactory.CreateClient("gateway");
+        await client.DeleteAsync($"api/skills/installed/{Uri.EscapeDataString(name)}");
+        await LoadSkillsAsync();
+    }
+
+    private void SetTab(string tab) => _tab = tab;
+
+    private async Task LoadMarketplace()
+    {
+        _tab = "marketplace";
+        if (_marketplaceSkills.Count > 0) return; // already loaded
+
+        _marketplaceLoading = true;
+        _marketplaceError = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var items = await client.GetFromJsonAsync<MarketplaceItemDto[]>("api/skills/marketplace") ?? [];
+            _marketplaceSkills = items.Select(i => new MarketplaceItem(i.Name, i.ContentUrl, i.GitHubUrl)).ToList();
+        }
+        catch (Exception ex)
+        {
+            _marketplaceError = $"Could not load marketplace: {ex.Message}";
+        }
+        finally
+        {
+            _marketplaceLoading = false;
+        }
+    }
+
+    private async Task InstallMarketplaceSkill(MarketplaceItem ms)
+    {
+        _installing.Add(ms.Name);
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            await client.PostAsJsonAsync("api/skills/install", new { name = ms.Name, contentUrl = ms.ContentUrl });
+            await LoadSkillsAsync();
+        }
+        catch { }
+        finally
+        {
+            _installing.Remove(ms.Name);
+        }
+    }
+
+    private sealed record SkillRow(string Name, string Description, string? Category, bool Enabled, string[] Tags, string Source);
+    private sealed record MarketplaceItem(string Name, string ContentUrl, string GitHubUrl);
+
+    // DTOs matching Gateway JSON
+    private sealed record SkillDefinitionDto(string Name, string? Description, string? Category, bool Enabled, string[]? Tags, string? Source);
+    private sealed record MarketplaceItemDto(string Name, string ContentUrl, string GitHubUrl);
+}

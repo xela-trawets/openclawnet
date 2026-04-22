@@ -1,0 +1,17 @@
+{
+  "id": "research-and-archive",
+  "name": "Research and archive",
+  "description": "Convert 3 web pages to Markdown, archive them locally, then build a small embeddings index you can query.",
+  "category": "research",
+  "docsUrl": "https://github.com/elbruno/openclawnet-plan/blob/main/docs/demos/tools/03-research-and-archive/README.md",
+  "prerequisites": [
+    "On first run the embeddings tool downloads ~90 MB of model weights to <Storage>/models/embeddings/.",
+    "Replace the three URLs in the prompt with the pages you want to archive."
+  ],
+  "requiredSecrets": [],
+  "requiredTools": ["markdown_convert", "file_system", "embeddings"],
+  "defaultJob": {
+    "name": "Research and archive — quick start",
+    "prompt": "Step 1: call markdown_convert for each of these 3 URLs and store the resulting Markdown into c:\\temp\\research\\<slug>.md using file_system.write: https://learn.microsoft.com/dotnet/, https://learn.microsoft.com/aspnet/core/, https://learn.microsoft.com/aspire/. Step 2: call embeddings.index over the c:\\temp\\research folder. Step 3: call embeddings.search for the query 'how do I host a Blazor app in Aspire' and return the top 3 hits with their source paths."
+  }
+}

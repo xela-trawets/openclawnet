@@ -1,0 +1,407 @@
+@using OpenClawNet.Web.Models.Jobs
+@using OpenClawNet.Web.Services
+@inject JobsClient JobsClient
+@inject NavigationManager Navigation
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@(_job is null ? "Create Job" : "Edit Job")</h5>
+        @if (_job is null)
+        {
+            <p class="text-muted small mb-2">New jobs start in <span class="badge bg-secondary">Draft</span>. Click ▶ Start to activate.</p>
+        }
+
+        <div class="mb-2">
+            <label class="form-label">Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control @(_validationErrors.ContainsKey("Name") ? "is-invalid" : "")"
+                   @bind="_name" placeholder="Daily standup summary" />
+            @if (_validationErrors.ContainsKey("Name"))
+            {
+                <div class="invalid-feedback">@_validationErrors["Name"]</div>
+            }
+        </div>
+
+        <div class="mb-2">
+            <label class="form-label">Prompt <span class="text-danger">*</span></label>
+            <textarea class="form-control @(_validationErrors.ContainsKey("Prompt") ? "is-invalid" : "")"
+                      rows="3" @bind="_prompt"
+                      placeholder="Summarize the team's progress from yesterday..."></textarea>
+            @if (_validationErrors.ContainsKey("Prompt"))
+            {
+                <div class="invalid-feedback">@_validationErrors["Prompt"]</div>
+            }
+        </div>
+
+        <div class="mb-2">
+            <label class="form-label">Agent Profile</label>
+            <select class="form-select @(_validationErrors.ContainsKey("AgentProfile") ? "is-invalid" : "")"
+                    @bind="_agentProfileName" disabled="@(_loadingProfiles || _agentProfiles.Count == 0)">
+                <option value="">@(_loadingProfiles ? "Loading profiles..." : _agentProfiles.Count == 0 ? "No profiles available" : "(Default)")</option>
+                @foreach (var profile in _agentProfiles)
+                {
+                    <option value="@profile.Name">@(profile.DisplayName ?? profile.Name) (@profile.Provider)</option>
+                }
+            </select>
+            @if (_agentProfiles.Count == 0 && !_loadingProfiles)
+            {
+                <small class="text-muted">No agent profiles configured. <a href="/settings" class="text-decoration-none">Configure profiles →</a></small>
+            }
+            @if (_validationErrors.ContainsKey("AgentProfile"))
+            {
+                <div class="invalid-feedback">@_validationErrors["AgentProfile"]</div>
+            }
+        </div>
+
+        <div class="mb-2">
+            <label class="form-label">Trigger Type</label>
+            <select class="form-select" @bind="_triggerType">
+                <option value="Manual">Manual</option>
+                <option value="Cron">Cron (recurring)</option>
+                <option value="Webhook">Webhook</option>
+            </select>
+        </div>
+
+        @if (_triggerType == "Cron")
+        {
+            <div class="mb-2">
+                <label class="form-label">Describe schedule in plain English (optional)</label>
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" @bind="_nlSchedule"
+                           placeholder="every weekday at 9 AM" />
+                    <button class="btn btn-outline-primary" type="button"
+                            @onclick="TranslateScheduleAsync" disabled="@_translating">
+                        @if (_translating) { <span class="spinner-border spinner-border-sm me-1" role="status"></span><span>Translating…</span> }
+                        else { <span>✨ Translate to cron</span> }
+                    </button>
+                </div>
+                @if (_translateError is not null) { <div class="text-danger small mt-1">@_translateError</div> }
+                @if (_translatedExplanation is not null) { <div class="text-muted small mt-1">→ <strong>@_cronExpression</strong> &mdash; @_translatedExplanation</div> }
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Schedule (Cron Expression) <span class="text-danger">*</span></label>
+                <input type="text" class="form-control @(_validationErrors.ContainsKey("Cron") ? "is-invalid" : "")"
+                       @bind="_cronExpression" placeholder="0 9 * * 1-5" />
+                <small class="text-muted">
+                    Need help? Use <a href="https://crontab.guru" target="_blank" rel="noopener noreferrer">crontab.guru</a>
+                </small>
+                @if (_validationErrors.ContainsKey("Cron"))
+                {
+                    <div class="invalid-feedback">@_validationErrors["Cron"]</div>
+                }
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Start At (optional)</label>
+                    <input type="datetime-local" class="form-control" @bind="_startAt" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">End At (optional)</label>
+                    <input type="datetime-local" class="form-control" @bind="_endAt" />
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Timezone</label>
+                <input type="text" class="form-control" @bind="_timeZone" placeholder="America/New_York (default: UTC)" />
+                <small class="text-muted">Use IANA timezone format (e.g., America/New_York, Europe/London, UTC)</small>
+            </div>
+        }
+
+        @if (_triggerType == "Webhook")
+        {
+            <div class="mb-2">
+                <label class="form-label">Webhook Endpoint</label>
+                <input type="text" class="form-control @(_validationErrors.ContainsKey("Webhook") ? "is-invalid" : "")"
+                       @bind="_webhookEndpoint" placeholder="/webhooks/my-job" />
+                <small class="text-muted">The relative URL path where this job can be triggered</small>
+                @if (_validationErrors.ContainsKey("Webhook"))
+                {
+                    <div class="invalid-feedback">@_validationErrors["Webhook"]</div>
+                }
+            </div>
+        }
+
+        <div class="mb-2">
+            <label class="form-label">Input Parameters (JSON, optional)</label>
+            <textarea class="form-control @(_validationErrors.ContainsKey("InputJson") ? "is-invalid" : "")"
+                      rows="3" @bind="_inputParametersJson"
+                      placeholder='{"customerId": "123", "reportType": "summary"}'></textarea>
+            <small class="text-muted">
+                Optional JSON object for parameterized prompts.
+                <button type="button" class="btn btn-link btn-sm p-0" @onclick="ValidateJson">Validate JSON</button>
+            </small>
+            @if (_validationErrors.ContainsKey("InputJson"))
+            {
+                <div class="invalid-feedback d-block">@_validationErrors["InputJson"]</div>
+            }
+            @if (_jsonValidationMessage is not null)
+            {
+                <div class="@(_jsonValidationSuccess ? "text-success" : "text-danger") small mt-1">@_jsonValidationMessage</div>
+            }
+        </div>
+
+        @if (_submitError is not null)
+        {
+            <div class="alert alert-danger py-2 small mb-2">⚠️ @_submitError</div>
+        }
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-success btn-sm" @onclick="Submit" disabled="@_submitting">
+                @if (_submitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    <span>@(_job is null ? "Creating…" : "Saving…")</span>
+                }
+                else
+                {
+                    <span>@(_job is null ? "Create" : "Save")</span>
+                }
+            </button>
+            <button class="btn btn-secondary btn-sm" @onclick="Cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid? JobId { get; set; }
+
+    private JobDetailDto? _job;
+    private List<AgentProfileDto> _agentProfiles = [];
+    private bool _loadingProfiles = true;
+
+    // Form fields
+    private string _name = string.Empty;
+    private string _prompt = string.Empty;
+    private string _agentProfileName = string.Empty;
+    private string _triggerType = "Manual";
+    private string _cronExpression = string.Empty;
+    private string _webhookEndpoint = string.Empty;
+    private string _inputParametersJson = string.Empty;
+    private DateTime? _startAt;
+    private DateTime? _endAt;
+    private string _timeZone = string.Empty;
+
+    // Validation & submission
+    private Dictionary<string, string> _validationErrors = new();
+    private bool _submitting;
+    private string? _submitError;
+    private string? _jsonValidationMessage;
+    private bool _jsonValidationSuccess;
+
+    // NL → cron translation
+    private string _nlSchedule = string.Empty;
+    private bool _translating;
+    private string? _translateError;
+    private string? _translatedExplanation;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAgentProfilesAsync();
+
+        if (JobId.HasValue)
+        {
+            await LoadJobAsync();
+        }
+    }
+
+    private async Task LoadAgentProfilesAsync()
+    {
+        try
+        {
+            _agentProfiles = await JobsClient.GetAgentProfilesAsync();
+        }
+        catch
+        {
+            _agentProfiles = [];
+        }
+        finally
+        {
+            _loadingProfiles = false;
+        }
+    }
+
+    private async Task LoadJobAsync()
+    {
+        if (!JobId.HasValue) return;
+
+        try
+        {
+            _job = await JobsClient.GetAsync(JobId.Value);
+            if (_job is not null)
+            {
+                _name = _job.Name;
+                _prompt = _job.Prompt;
+                _agentProfileName = _job.AgentProfileName ?? string.Empty;
+                _cronExpression = _job.CronExpression ?? string.Empty;
+                _nlSchedule = _job.NaturalLanguageSchedule ?? string.Empty;
+                _startAt = _job.StartAt?.ToLocalTime();
+                _endAt = _job.EndAt?.ToLocalTime();
+                _timeZone = _job.TimeZone ?? string.Empty;
+
+                // Infer trigger type from existing job
+                if (!string.IsNullOrWhiteSpace(_job.CronExpression))
+                    _triggerType = "Cron";
+                // Note: WebhookEndpoint not in DTO yet, defaulting to Manual
+            }
+        }
+        catch
+        {
+            _submitError = "Failed to load job details.";
+        }
+    }
+
+    private void ValidateJson()
+    {
+        _validationErrors.Remove("InputJson");
+        _jsonValidationMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_inputParametersJson))
+        {
+            _jsonValidationMessage = "✓ Empty is valid (no parameters)";
+            _jsonValidationSuccess = true;
+            return;
+        }
+
+        try
+        {
+            System.Text.Json.JsonDocument.Parse(_inputParametersJson);
+            _jsonValidationMessage = "✓ Valid JSON";
+            _jsonValidationSuccess = true;
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            _jsonValidationMessage = $"✗ Invalid JSON: {ex.Message}";
+            _jsonValidationSuccess = false;
+            _validationErrors["InputJson"] = "Invalid JSON format";
+        }
+    }
+
+    private bool Validate()
+    {
+        _validationErrors.Clear();
+
+        if (string.IsNullOrWhiteSpace(_name))
+            _validationErrors["Name"] = "Name is required";
+
+        if (string.IsNullOrWhiteSpace(_prompt))
+            _validationErrors["Prompt"] = "Prompt is required";
+
+        if (_triggerType == "Cron" && string.IsNullOrWhiteSpace(_cronExpression))
+            _validationErrors["Cron"] = "Cron expression is required for recurring jobs";
+
+        if (_triggerType == "Webhook" && string.IsNullOrWhiteSpace(_webhookEndpoint))
+            _validationErrors["Webhook"] = "Webhook endpoint is required for webhook-triggered jobs";
+
+        // Basic cron validation (5 or 6 fields)
+        if (!string.IsNullOrWhiteSpace(_cronExpression))
+        {
+            var parts = _cronExpression.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 5 || parts.Length > 6)
+                _validationErrors["Cron"] = "Cron expression must have 5 or 6 fields (e.g., '0 9 * * 1-5')";
+        }
+
+        // Validate JSON if provided
+        if (!string.IsNullOrWhiteSpace(_inputParametersJson))
+        {
+            try
+            {
+                System.Text.Json.JsonDocument.Parse(_inputParametersJson);
+            }
+            catch
+            {
+                _validationErrors["InputJson"] = "Invalid JSON format";
+            }
+        }
+
+        return _validationErrors.Count == 0;
+    }
+
+    private async Task Submit()
+    {
+        if (!Validate()) return;
+
+        _submitting = true;
+        _submitError = null;
+        StateHasChanged();
+
+        try
+        {
+            var request = new CreateJobRequest
+            {
+                Name = _name.Trim(),
+                Prompt = _prompt.Trim(),
+                CronExpression = _triggerType == "Cron" ? _cronExpression.Trim() : null,
+                StartAt = _startAt?.ToUniversalTime(),
+                EndAt = _endAt?.ToUniversalTime(),
+                TimeZone = string.IsNullOrWhiteSpace(_timeZone) ? null : _timeZone.Trim(),
+                AgentProfileName = string.IsNullOrWhiteSpace(_agentProfileName) ? null : _agentProfileName.Trim(),
+                NaturalLanguageSchedule = string.IsNullOrWhiteSpace(_nlSchedule) ? null : _nlSchedule.Trim()
+            };
+
+            if (JobId.HasValue)
+            {
+                await JobsClient.UpdateAsync(JobId.Value, request);
+            }
+            else
+            {
+                await JobsClient.CreateAsync(request);
+            }
+
+            Navigation.NavigateTo("/jobs");
+        }
+        catch (Exception ex)
+        {
+            _submitError = $"Failed to {(JobId.HasValue ? "update" : "create")} job: {ex.Message}";
+        }
+        finally
+        {
+            _submitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/jobs");
+    }
+
+    private async Task TranslateScheduleAsync()
+    {
+        _translateError = null;
+        _translatedExplanation = null;
+
+        if (string.IsNullOrWhiteSpace(_nlSchedule))
+        {
+            _translateError = "Enter a schedule description first.";
+            return;
+        }
+
+        _translating = true;
+        StateHasChanged();
+        try
+        {
+            var result = await JobsClient.TranslateCronAsync(_nlSchedule.Trim());
+            if (result.Success && !string.IsNullOrWhiteSpace(result.Cron))
+            {
+                _cronExpression = result.Cron;
+                _translatedExplanation = result.Explanation ?? string.Empty;
+                _validationErrors.Remove("Cron");
+            }
+            else
+            {
+                _translateError = result.Error ?? "Could not translate this schedule.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _translateError = $"Translation request failed: {ex.Message}";
+        }
+        finally
+        {
+            _translating = false;
+            StateHasChanged();
+        }
+    }
+}

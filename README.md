@@ -2,83 +2,52 @@
 
 **Build an AI Agent Platform in .NET 10 with GitHub Copilot**
 
-Welcome to OpenClaw .NET! This repository contains session materials and working code from the **Microsoft Reactor live series** on building production-ready AI agents using .NET 10, Blazor, and GitHub Copilot.
+OpenClaw .NET is the companion repo for the **Microsoft Reactor live series** on building production‑ready AI agents with **.NET 10**, **Aspire**, **Blazor** and **GitHub Copilot**. It contains the complete application source, tests, manuals, demos, and per‑session attendee materials — everything you need to follow along live, or rebuild the whole platform on your own machine.
 
-> **📌 This repo grows with each session.** Code is added incrementally — after Session 1, you'll have a working chatbot. By Session 4, a full AI agent platform.
+> 👉 **First time here? Start with [SETUP.md](./SETUP.md)** for a step‑by‑step local setup (prerequisites, hardware, clone, build, run, first chat, troubleshooting).
 
 ---
 
-## 📺 Reactor Series — Register Now!
+## 📺 Reactor Series — Register
 
 | Language | Series Page |
-|----------|------------|
+|----------|-------------|
 | 🇺🇸 **English** | [Building an AI Agent Platform in .NET 10 with GitHub Copilot](https://developer.microsoft.com/en-us/reactor/series/s-1652/) |
 | 🇪🇸 **Español** | [Construye una Plataforma de Agentes AI en .NET 10 con GitHub Copilot](https://developer.microsoft.com/en-us/reactor/series/S-1653/) |
 
 ---
 
-## 📅 The 4-Session Journey (50 min each)
+## 📅 The 4‑Session Journey (50 min each)
 
-### Session 1: Foundation + Local Chat
-**Architecture, Local LLM Providers, SignalR Streaming, Blazor UI**
+| # | Session | Focus | Materials |
+|---|---------|-------|-----------|
+| **1** | Foundation + Local Chat | Architecture, local LLM providers, SignalR streaming, Blazor UI | [sessions/session-1](./sessions/session-1/) |
+| **2** | Tools + Agent Workflows | Tool framework, security model, agent orchestrator loop | [sessions/session-2](./sessions/session-2/) |
+| **3** | Skills + Memory | Markdown skills, context management, semantic search | [sessions/session-3](./sessions/session-3/) |
+| **4** | Automation + Cloud | Cloud providers, job scheduling, testing, production readiness | [sessions/session-4](./sessions/session-4/) |
 
-Walk through a pre-built .NET 10 solution: model abstractions, local LLM integration (Ollama/Foundry Local) with SSE streaming, EF Core storage, Gateway API, and a real-time Blazor chat UI — all orchestrated with Aspire.
-
-- 📦 *Materials available on session day*
-- 🇺🇸 [Register](https://developer.microsoft.com/en-us/reactor/events/26919/) · 🇪🇸 [Registrarse](https://developer.microsoft.com/en-us/reactor/events/26923/)
-
----
-
-### Session 2: Tools + Agent Workflows
-**Tool Framework, Security Model, Agent Orchestrator Loop**
-
-Upgrade the chatbot to an agent: add a tool framework with approval policies, built-in tools (FileSystem, Shell, Web, Scheduler) with security gates, and the core agent reasoning loop.
-
-- 📦 *Materials available after Session 1*
-- 🇺🇸 [Register](https://developer.microsoft.com/en-us/reactor/events/26920/) · 🇪🇸 [Registrarse](https://developer.microsoft.com/en-us/reactor/events/26924/)
-
----
-
-### Session 3: Skills + Memory
-**Markdown Skills, Context Management, Semantic Search**
-
-Give the agent personality with Markdown+YAML skills and long-term memory through conversation summarization and local embeddings for semantic search.
-
-- 📦 *Materials available after Session 2*
-- 🇺🇸 [Register](https://developer.microsoft.com/en-us/reactor/events/26921/) · 🇪🇸 [Registrarse](https://developer.microsoft.com/en-us/reactor/events/26925/)
-
----
-
-### Session 4: Automation + Cloud 🎉
-**Cloud Providers, Job Scheduling, Testing, Production Readiness**
-
-Connect Azure OpenAI and Foundry providers, add cron-based job scheduling, run the full test suite, and see the complete platform in action.
-
-- 📦 *Materials available after Session 3*
-- 🇺🇸 [Register](https://developer.microsoft.com/en-us/reactor/events/26922/) · 🇪🇸 [Registrarse](https://developer.microsoft.com/en-us/reactor/events/26926/)
+Each session uses an **Explain → Explore → Extend** approach: walk the architecture, run live demos, then add features with GitHub Copilot.
 
 ---
 
 ## 🚀 Quick Start
 
-```bash
-# Clone the repo
+```powershell
 git clone https://github.com/elbruno/openclawnet.git
 cd openclawnet
+
+# Pull a local model
+ollama pull llama3.2
+
+# Build & run
+$env:NUGET_PACKAGES="$env:USERPROFILE\.nuget\packages2"
+dotnet build src\OpenClawNet.AppHost\OpenClawNet.AppHost.csproj
+aspire start src\OpenClawNet.AppHost
 ```
 
-Session code and materials are published on the day of each live session. Register at the links above to be notified!
+Open the **Web** URL from the Aspire dashboard (typically <http://localhost:5010>) and say hello.
 
----
-
-## 📋 Prerequisites
-
-- **.NET 10 SDK** — [Download](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-- **VS Code + GitHub Copilot** — [Setup](https://github.com/features/copilot)
-- **Ollama** — [Download](https://ollama.ai/) or **Foundry Local** — [Docs](https://devblogs.microsoft.com/foundry/foundry-local-ga/) (run `ollama pull phi4-mini` or use Foundry Local SDK)
-- **Docker** — [Docker Desktop](https://www.docker.com/products/docker-desktop)
-
-For Session 4 (optional): **Azure subscription** — [Free account](https://azure.microsoft.com/free/)
+For the full guide — including hardware requirements, the four model providers, the Jobs/Tools demos, and troubleshooting — see **[SETUP.md](./SETUP.md)**.
 
 ---
 
@@ -91,31 +60,27 @@ Blazor Web UI ──SignalR──▶ Gateway API ──▶ Agent Orchestrator
                            ▼                  ▼              ▼
                      Model Provider      Tool Framework   Skills System
                      (Ollama/Foundry     (File/Shell/     (Markdown +
-                      Local/Azure)        Web/Schedule)    YAML)
+                      Local/Azure/...)    Web/Schedule)    YAML)
                                               │
                                               ▼
                                          SQLite Storage
 ```
 
-> 💡 **Session 1 starts with just the chatbot path** (UI → Gateway → Model → Storage). Each session adds a new layer until you have the full agent platform.
+> Session 1 starts with just the chatbot path (UI → Gateway → Model → Storage). Each session adds a new layer until you have the full agent platform.
 
 ---
 
-## 📖 How to Follow Along
+## 📁 What's in the Repo
 
-Each session uses an **Explain → Explore → Extend** approach:
+- **[`src/`](./src/)** — the full .NET 10 + Aspire application (40+ projects: Gateway, Web, Agent, Memory, Skills, Storage, model providers, tools, MCP servers).
+- **[`tests/`](./tests/)** — Unit, Integration, and Playwright E2E test suites.
+- **[`docs/manuals/`](./docs/manuals/)** — user‑facing manuals (prerequisites, installation, settings, tools, jobs).
+- **[`docs/demos/`](./docs/demos/)** — short demo scripts (aspire‑stack, gateway‑only, tools, real‑world scenarios).
+- **[`docs/analysis/`](./docs/analysis/)** — architecture and design analyses.
+- **[`scripts/`](./scripts/)** — helper PowerShell scripts (prereqs, reset, dashboard publish).
+- **[`sessions/`](./sessions/)** — per‑session attendee materials (READMEs, scripts, slides, demo code).
 
-1. **Explain** — Walk through the pre-built code and architecture
-2. **Explore** — Run live demos, test endpoints, see behavior
-3. **Extend** — 2-3 small Copilot completions to add features
-
-The code grows incrementally:
-| After Session | What's in the repo |
-|---------------|-------------------|
-| **1** | Chatbot: Models, Local LLMs, Storage, Gateway, Blazor, Aspire |
-| **2** | + Agent: Tools framework, security gates, agent loop |
-| **3** | + Personality: Skills system, memory, summarization |
-| **4** | + Production: Cloud providers, scheduling, tests |
+See the **What's Where** section in [SETUP.md](./SETUP.md#11-whats-where) for a per‑folder breakdown.
 
 ---
 
@@ -123,7 +88,7 @@ The code grows incrementally:
 
 - **Discord:** [Azure AI Community](https://aka.ms/ai-discord/dotnet) (.NET channel)
 - **Issues:** [Open an issue](https://github.com/elbruno/openclawnet/issues)
-- **Resources:** [Generative AI for Beginners .NET](https://aka.ms/genainet) · [Aspire](https://aspire.dev)
+- **Resources:** [Generative AI for Beginners .NET](https://aka.ms/genainet) · [.NET Aspire](https://aspire.dev)
 
 ---
 

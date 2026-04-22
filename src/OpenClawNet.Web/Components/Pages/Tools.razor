@@ -1,0 +1,619 @@
+@page "/tools"
+@rendermode InteractiveServer
+@using System.Text.Json
+@inject IHttpClientFactory HttpClientFactory
+@inject ILogger<Tools> Logger
+
+<PageTitle>OpenClaw .NET - Tools</PageTitle>
+
+<h3>🛠️ Tools</h3>
+<p class="text-muted">
+    Tools the agent can call. Use the <strong>Test</strong> button to verify a tool works in isolation —
+    either by passing JSON arguments yourself (<em>Direct Invoke</em>) or by letting the configured
+    <strong>ToolTester</strong> profile build the arguments from a natural-language prompt (<em>Agent Probe</em>).
+</p>
+
+@if (_loading)
+{
+    <div class="alert alert-info">Loading tools…</div>
+}
+else if (_tools.Count == 0)
+{
+    <div class="alert alert-warning">No tools registered.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Approval</th>
+                    <th>Last test</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in _tools.OrderBy(x => x.Category).ThenBy(x => x.Name))
+                {
+                    var rec = _results.GetValueOrDefault(t.Name);
+                    <tr>
+                        <td><code>@t.Name</code></td>
+                        <td><span class="badge bg-secondary">@t.Category</span></td>
+                        <td class="small">@t.Description</td>
+                        <td>
+                            @if (t.RequiresApproval)
+                            {
+                                <span class="badge bg-warning text-dark">requires approval</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">auto</span>
+                            }
+                        </td>
+                        <td class="small">
+                            @if (rec is null || rec.LastTestedAt is null)
+                            {
+                                <span class="text-muted">never tested</span>
+                            }
+                            else if (rec.LastTestSucceeded == true)
+                            {
+                                <span class="badge bg-success">✓ @rec.LastTestMode</span>
+                                <div class="text-muted">@rec.LastTestedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger" title="@rec.LastTestError">✗ @rec.LastTestMode</span>
+                                <div class="text-muted">@rec.LastTestedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => OpenTest(t)">Test</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (_testTool is not null)
+{
+    <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Test tool: <code>@_testTool.Name</code></h5>
+                    <button type="button" class="btn-close" @onclick="CloseTest"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3">
+                        <li class="nav-item">
+                            <button class="nav-link @(string.Equals(_mode, "probe") ? "active" : "")"
+                                    @onclick='() => _mode = "probe"'>Agent Probe</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(string.Equals(_mode, "direct") ? "active" : "")"
+                                    @onclick='() => _mode = "direct"'>Direct Invoke</button>
+                        </li>
+                    </ul>
+
+                    @if (_mode == "direct")
+                    {
+                        <p class="text-muted small mb-2">
+                            Provide arguments for the tool. The tool runs immediately — no LLM is involved.
+                        </p>
+
+                        @if (_schemaProperties.Count > 0)
+                        {
+                            <div class="d-flex justify-content-end gap-3 mb-2">
+                                @if (!_useRawJson)
+                                {
+                                    <button type="button" class="btn btn-link btn-sm p-0"
+                                            @onclick="FillDefaults"
+                                            title="Fill fields with example values for a quick test">
+                                        <i class="bi bi-magic"></i> Defaults
+                                    </button>
+                                }
+                                <button type="button" class="btn btn-link btn-sm p-0"
+                                        @onclick="ToggleRawJson">
+                                    @(_useRawJson ? "Use form fields" : "Show raw JSON")
+                                </button>
+                            </div>
+                        }
+
+                        @if (_schemaProperties.Count == 0 || _useRawJson)
+                        {
+                            <label class="form-label">Arguments (JSON)</label>
+                            <textarea class="form-control font-monospace" rows="8" @bind="_arguments"
+                                      placeholder='{"key": "value"}'></textarea>
+                        }
+                        else
+                        {
+                            @foreach (var prop in _schemaProperties)
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label mb-0">
+                                        <code>@prop.Name</code>
+                                        @if (prop.Required)
+                                        {
+                                            <span class="text-danger ms-1" title="Required">*</span>
+                                        }
+                                        <span class="badge bg-light text-muted border ms-1">@prop.TypeLabel</span>
+                                    </label>
+                                    @if (!string.IsNullOrWhiteSpace(prop.Description))
+                                    {
+                                        <div class="form-text mt-0 mb-1">@prop.Description</div>
+                                    }
+                                    @if (prop.EnumValues is { Count: > 0 })
+                                    {
+                                        <select class="form-select" value="@_formValues[prop.Name]"
+                                                @onchange="e => SetField(prop.Name, e.Value?.ToString() ?? string.Empty)">
+                                            @if (!prop.Required)
+                                            {
+                                                <option value="">— (leave unset) —</option>
+                                            }
+                                            @foreach (var v in prop.EnumValues)
+                                            {
+                                                <option value="@v">@v</option>
+                                            }
+                                        </select>
+                                    }
+                                    else if (prop.Type == "boolean")
+                                    {
+                                        <select class="form-select" value="@_formValues[prop.Name]"
+                                                @onchange="e => SetField(prop.Name, e.Value?.ToString() ?? string.Empty)">
+                                            <option value="">— (leave unset) —</option>
+                                            <option value="true">true</option>
+                                            <option value="false">false</option>
+                                        </select>
+                                    }
+                                    else if (prop.Type == "number" || prop.Type == "integer")
+                                    {
+                                        <input type="number" class="form-control" value="@_formValues[prop.Name]"
+                                               step="@(prop.Type == "integer" ? "1" : "any")"
+                                               @oninput="e => SetField(prop.Name, e.Value?.ToString() ?? string.Empty)" />
+                                    }
+                                    else if (prop.Type == "object" || prop.Type == "array")
+                                    {
+                                        <textarea class="form-control font-monospace" rows="3"
+                                                  placeholder="@(prop.Type == "array" ? "[]" : "{}")"
+                                                  value="@_formValues[prop.Name]"
+                                                  @oninput="e => SetField(prop.Name, e.Value?.ToString() ?? string.Empty)"></textarea>
+                                        <div class="form-text">Enter raw JSON for this @prop.Type.</div>
+                                    }
+                                    else
+                                    {
+                                        <input type="text" class="form-control" value="@_formValues[prop.Name]"
+                                               @oninput="e => SetField(prop.Name, e.Value?.ToString() ?? string.Empty)" />
+                                    }
+                                </div>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        @if (_testerProfiles.Count == 0)
+                        {
+                            <div class="alert alert-warning">
+                                No <strong>ToolTester</strong> agent is configured.
+                                Create one on the <a href="agent-profiles">Agent Profiles</a> page first.
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small">
+                                The selected ToolTester agent will convert your prompt into JSON arguments
+                                that match the tool's parameter schema, then run the tool.
+                            </p>
+                            <label class="form-label">ToolTester profile</label>
+                            <select class="form-select mb-3" @bind="_testerProfileName">
+                                @foreach (var p in _testerProfiles)
+                                {
+                                    <option value="@p">@p</option>
+                                }
+                            </select>
+                            <label class="form-label">Prompt</label>
+                            <textarea class="form-control" rows="5" @bind="_prompt"
+                                      placeholder="e.g. List the files in the current working directory"></textarea>
+                        }
+                    }
+
+                    @if (_lastResult is not null)
+                    {
+                        <hr />
+                        <h6>Result</h6>
+                        @if (_lastResult.Success)
+                        {
+                            <div class="alert alert-success py-2 mb-2">@_lastResult.Message</div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger py-2 mb-2">@_lastResult.Message</div>
+                        }
+                        @if (!string.IsNullOrEmpty(_lastResult.Output))
+                        {
+                            <details open>
+                                <summary class="mb-1">Tool output (@_lastResult.Output.Length chars)</summary>
+                                <pre class="bg-light p-2 small mb-0"
+                                     style="max-height: 50vh; overflow: auto; white-space: pre-wrap; word-break: break-word;">@_lastResult.Output</pre>
+                            </details>
+                        }
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseTest" disabled="@_running">Close</button>
+                    <button class="btn btn-primary" @onclick="RunTest"
+                            disabled="@(_running || (_mode == "probe" && _testerProfiles.Count == 0))">
+                        @(_running ? "Running…" : "Run test")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private List<ToolDto> _tools = new();
+    private Dictionary<string, ToolTestResultDto> _results = new(StringComparer.OrdinalIgnoreCase);
+    private List<string> _testerProfiles = new();
+
+    private ToolDto? _testTool;
+    private string _mode = "direct";
+    private string _arguments = "{}";
+    private string _prompt = string.Empty;
+    private string? _testerProfileName;
+    private bool _running;
+    private ToolTestResponseDto? _lastResult;
+
+    // ── Schema-driven form state ──
+    private List<SchemaProperty> _schemaProperties = new();
+    private Dictionary<string, string> _formValues = new(StringComparer.Ordinal);
+    private bool _useRawJson;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            var http = HttpClientFactory.CreateClient("gateway");
+            var tools = await http.GetFromJsonAsync<List<ToolDto>>("/api/tools");
+            _tools = tools ?? new();
+
+            var results = await http.GetFromJsonAsync<List<ToolTestResultDto>>("/api/tools/test-results");
+            _results = (results ?? new()).ToDictionary(r => r.Name, StringComparer.OrdinalIgnoreCase);
+
+            var profiles = await http.GetFromJsonAsync<List<AgentProfileLite>>("/api/agent-profiles?kind=ToolTester");
+            _testerProfiles = (profiles ?? new()).Where(p => p.IsEnabled).Select(p => p.Name).ToList();
+            _testerProfileName = _testerProfiles.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load tools page");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void OpenTest(ToolDto t)
+    {
+        _testTool = t;
+        _mode = "probe";
+        _arguments = "{}";
+        _prompt = string.Empty;
+        _lastResult = null;
+        _useRawJson = false;
+        _schemaProperties = ParseSchema(t.ParameterSchema);
+        _formValues = new(StringComparer.Ordinal);
+        foreach (var p in _schemaProperties)
+            _formValues[p.Name] = string.Empty;
+    }
+
+    private void CloseTest()
+    {
+        _testTool = null;
+        _lastResult = null;
+    }
+
+    private void SetField(string name, string value)
+    {
+        _formValues[name] = value;
+    }
+
+    private void FillDefaults()
+    {
+        if (_testTool is null) return;
+        foreach (var prop in _schemaProperties)
+        {
+            // Always overwrite so users get a fresh, valid sample.
+            _formValues[prop.Name] = ResolveDefault(_testTool.Name, prop);
+        }
+    }
+
+    private static string ResolveDefault(string toolName, SchemaProperty prop)
+    {
+        // 1. Schema-provided default / examples win.
+        if (!string.IsNullOrEmpty(prop.DefaultValue)) return prop.DefaultValue!;
+        if (!string.IsNullOrEmpty(prop.ExampleValue)) return prop.ExampleValue!;
+
+        // 2. Per-tool heuristics (must beat "enum first" so file_system.action=list wins over read).
+        var (tool, name) = (toolName.ToLowerInvariant(), prop.Name.ToLowerInvariant());
+        var heuristic = (tool, name) switch
+        {
+            ("browser", "action") => "navigate",
+            ("browser", "url") => "https://elbruno.com",
+            ("browser", "selector") => "body",
+            ("browser", "value") => "",
+            ("web_fetch", "url") => "https://elbruno.com",
+            ("web_fetch", "method") => "GET",
+            ("markdown_convert", "url") => "https://elbruno.com",
+            ("calculator", "expression") => "Sqrt(2) * Pow(3,4) + 5",
+            ("youtube_transcript", "url") => "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            ("youtube_transcript", "language") => "en",
+            ("text_to_image", "prompt") => "a friendly cartoon avocado wearing sunglasses, vector art",
+            ("text_to_image", "steps") => "15",
+            ("text_to_image", "width") => "512",
+            ("text_to_image", "height") => "512",
+            ("embeddings", "action") => "embed",
+            ("embeddings", "text") => "OpenClawNet is a .NET agent framework",
+            ("embeddings", "topK") => "5",
+            ("text_to_speech", "text") => "Hello from OpenClawNet, this is a local text to speech sample.",
+            ("text_to_speech", "speaker") => "ryan",
+            ("text_to_speech", "language") => "english",
+            ("github", "action") => "list_issues",
+            ("github", "owner") => "elbruno",
+            ("github", "repo") => "openclawnet-plan",
+            ("github", "perPage") => "10",
+            ("github", "state") => "open",
+            ("image_edit", "action") => "resize",
+            ("image_edit", "format") => "png",
+            ("image_edit", "width") => "256",
+            ("image_edit", "height") => "256",
+            ("image_edit", "x") => "0",
+            ("image_edit", "y") => "0",
+            ("html_query", "url") => "https://elbruno.com",
+            ("html_query", "selector") => "h1",
+            ("html_query", "limit") => "5",
+            ("shell", "command") => "echo hello",
+            ("shell", "workingdirectory") => "",
+            ("file_system", "action") => "list",
+            ("file_system", "path") => OperatingSystem.IsWindows() ? @"c:\src" : ".",
+            ("file_system", "content") => "",
+            ("scheduler", "action") => "list",
+            ("scheduler", "name") => "test-job",
+            ("scheduler", "prompt") => "Say hello",
+            ("scheduler", "cron") => "0 9 * * *",
+            _ => null
+        };
+        if (heuristic is not null) return heuristic;
+
+        // 3. Enum → first option.
+        if (prop.EnumValues is { Count: > 0 }) return prop.EnumValues[0];
+
+        // 4. Generic per-name heuristics.
+        return name switch
+        {
+            "url" => "https://elbruno.com",
+            "path" => ".",
+            "selector" => "body",
+            "command" => "echo hello",
+            "query" => "hello world",
+            _ => prop.Type switch
+            {
+                "boolean" => "false",
+                "integer" => "0",
+                "number" => "0",
+                "array" => "[]",
+                "object" => "{}",
+                _ => prop.Required ? "example" : ""
+            }
+        };
+    }
+
+    private void ToggleRawJson()
+    {
+        if (!_useRawJson)
+        {
+            // form → raw JSON
+            _arguments = BuildArgumentsJson();
+            _useRawJson = true;
+        }
+        else
+        {
+            // raw JSON → form (best-effort: parse top-level scalars back into fields)
+            try
+            {
+                using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(_arguments) ? "{}" : _arguments);
+                if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var prop in _schemaProperties)
+                    {
+                        if (doc.RootElement.TryGetProperty(prop.Name, out var v))
+                        {
+                            _formValues[prop.Name] = v.ValueKind switch
+                            {
+                                JsonValueKind.String => v.GetString() ?? string.Empty,
+                                JsonValueKind.Number => v.GetRawText(),
+                                JsonValueKind.True => "true",
+                                JsonValueKind.False => "false",
+                                JsonValueKind.Null => string.Empty,
+                                _ => v.GetRawText(),
+                            };
+                        }
+                    }
+                }
+            }
+            catch { /* leave form values as-is */ }
+            _useRawJson = false;
+        }
+    }
+
+    private string BuildArgumentsJson()
+    {
+        if (_useRawJson || _schemaProperties.Count == 0)
+            return string.IsNullOrWhiteSpace(_arguments) ? "{}" : _arguments;
+
+        var dict = new Dictionary<string, object?>();
+        foreach (var prop in _schemaProperties)
+        {
+            if (!_formValues.TryGetValue(prop.Name, out var raw)) continue;
+            if (string.IsNullOrEmpty(raw)) continue;
+
+            switch (prop.Type)
+            {
+                case "boolean":
+                    if (bool.TryParse(raw, out var b)) dict[prop.Name] = b;
+                    break;
+                case "integer":
+                    if (long.TryParse(raw, out var i)) dict[prop.Name] = i;
+                    break;
+                case "number":
+                    if (double.TryParse(raw, System.Globalization.NumberStyles.Any,
+                                        System.Globalization.CultureInfo.InvariantCulture, out var d))
+                        dict[prop.Name] = d;
+                    break;
+                case "object":
+                case "array":
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(raw);
+                        dict[prop.Name] = JsonSerializer.Deserialize<JsonElement>(doc.RootElement.GetRawText());
+                    }
+                    catch
+                    {
+                        dict[prop.Name] = raw;
+                    }
+                    break;
+                default:
+                    dict[prop.Name] = raw;
+                    break;
+            }
+        }
+        return JsonSerializer.Serialize(dict);
+    }
+
+    private static List<SchemaProperty> ParseSchema(JsonElement schema)
+    {
+        var result = new List<SchemaProperty>();
+        if (schema.ValueKind != JsonValueKind.Object) return result;
+        if (!schema.TryGetProperty("properties", out var props) || props.ValueKind != JsonValueKind.Object)
+            return result;
+
+        var required = new HashSet<string>(StringComparer.Ordinal);
+        if (schema.TryGetProperty("required", out var req) && req.ValueKind == JsonValueKind.Array)
+            foreach (var r in req.EnumerateArray())
+                if (r.ValueKind == JsonValueKind.String) required.Add(r.GetString()!);
+
+        foreach (var prop in props.EnumerateObject())
+        {
+            var type = "string";
+            string? desc = null;
+            List<string>? enumValues = null;
+            string? defaultValue = null;
+            string? exampleValue = null;
+
+            if (prop.Value.ValueKind == JsonValueKind.Object)
+            {
+                if (prop.Value.TryGetProperty("type", out var t) && t.ValueKind == JsonValueKind.String)
+                    type = t.GetString() ?? "string";
+                if (prop.Value.TryGetProperty("description", out var dEl) && dEl.ValueKind == JsonValueKind.String)
+                    desc = dEl.GetString();
+                if (prop.Value.TryGetProperty("enum", out var eEl) && eEl.ValueKind == JsonValueKind.Array)
+                {
+                    enumValues = new List<string>();
+                    foreach (var v in eEl.EnumerateArray())
+                        enumValues.Add(v.ValueKind == JsonValueKind.String ? v.GetString()! : v.GetRawText());
+                }
+                if (prop.Value.TryGetProperty("default", out var defEl))
+                    defaultValue = JsonScalarToString(defEl);
+                if (prop.Value.TryGetProperty("example", out var exEl))
+                    exampleValue = JsonScalarToString(exEl);
+                else if (prop.Value.TryGetProperty("examples", out var exsEl)
+                         && exsEl.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var v in exsEl.EnumerateArray())
+                    {
+                        exampleValue = JsonScalarToString(v);
+                        break;
+                    }
+                }
+            }
+
+            result.Add(new SchemaProperty(
+                Name: prop.Name,
+                Type: type,
+                TypeLabel: enumValues is { Count: > 0 } ? "enum" : type,
+                Description: desc,
+                Required: required.Contains(prop.Name),
+                EnumValues: enumValues,
+                DefaultValue: defaultValue,
+                ExampleValue: exampleValue));
+        }
+        return result;
+    }
+
+    private static string? JsonScalarToString(JsonElement e) => e.ValueKind switch
+    {
+        JsonValueKind.String => e.GetString(),
+        JsonValueKind.Number => e.GetRawText(),
+        JsonValueKind.True => "true",
+        JsonValueKind.False => "false",
+        JsonValueKind.Null => null,
+        _ => e.GetRawText(),
+    };
+
+    private async Task RunTest()
+    {
+        if (_testTool is null) return;
+        _running = true;
+        _lastResult = null;
+        try
+        {
+            var http = HttpClientFactory.CreateClient("gateway");
+            var argsJson = _mode == "direct" ? BuildArgumentsJson() : null;
+            var body = new
+            {
+                mode = _mode,
+                arguments = argsJson,
+                prompt = _mode == "probe" ? _prompt : null,
+                testerProfileName = _mode == "probe" ? _testerProfileName : null
+            };
+            var response = await http.PostAsJsonAsync($"/api/tools/{_testTool.Name}/test", body);
+            _lastResult = await response.Content.ReadFromJsonAsync<ToolTestResponseDto>();
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _lastResult = new ToolTestResponseDto(false, "Request failed: " + ex.Message, _mode, null, TimeSpan.Zero);
+        }
+        finally
+        {
+            _running = false;
+        }
+    }
+
+    private sealed record ToolDto(string Name, string Description, string Category, bool RequiresApproval, List<string> Tags, JsonElement ParameterSchema);
+    private sealed record ToolTestResultDto(string Name, DateTime? LastTestedAt, bool? LastTestSucceeded, string? LastTestError, string? LastTestMode);
+    private sealed record ToolTestResponseDto(bool Success, string Message, string Mode, string? Output, TimeSpan Duration);
+    private sealed record AgentProfileLite(string Name, string Kind, bool IsEnabled);
+
+    private sealed record SchemaProperty(
+        string Name,
+        string Type,
+        string TypeLabel,
+        string? Description,
+        bool Required,
+        List<string>? EnumValues,
+        string? DefaultValue = null,
+        string? ExampleValue = null);
+}

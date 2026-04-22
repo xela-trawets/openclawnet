@@ -1,0 +1,289 @@
+@page "/settings/mcp/new"
+@page "/settings/mcp/{Id:guid}"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@using OpenClawNet.Web.Components.Pages.McpSettings
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Nav
+@inject ILogger<Edit> Logger
+
+<PageTitle>OpenClaw .NET - MCP Server</PageTitle>
+
+<h3>@(Id is null ? "Add MCP Server" : (_isBuiltIn ? "Built-in MCP Server" : "Edit MCP Server"))</h3>
+
+@if (_loading)
+{
+    <div class="text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>
+    return;
+}
+
+@if (_isBuiltIn)
+{
+    <div class="alert alert-info py-2 small">
+        🛡️ This is a built-in MCP server bundled with OpenClawNet. Only the enabled state is editable.
+    </div>
+}
+else if (_form.Transport == "stdio")
+{
+    <div class="alert alert-warning py-2 small">
+        ⚠️ This will execute <code>@(_form.Command ?? "<command>")</code> on your machine. Only install MCP servers from sources you trust.
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger py-2 small">@_error</div>
+}
+@if (_saved)
+{
+    <div class="alert alert-success py-2 small">✔ Saved.</div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Name</label>
+            <input type="text" class="form-control" @bind="_form.Name"
+                   placeholder="my-mcp-server" disabled="@_isBuiltIn" />
+            <div class="form-text">Unique identifier shown in chat tool calls.</div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold d-block">Transport</label>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="transport" id="trStdio"
+                       value="stdio" checked="@(_form.Transport == "stdio")"
+                       @onchange="@(() => _form.Transport = "stdio")" disabled="@_isBuiltIn" />
+                <label class="form-check-label" for="trStdio">stdio (subprocess)</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="transport" id="trHttp"
+                       value="http" checked="@(_form.Transport == "http")"
+                       @onchange="@(() => _form.Transport = "http")" disabled="@_isBuiltIn" />
+                <label class="form-check-label" for="trHttp">HTTP (Streamable HTTP)</label>
+            </div>
+            @if (_form.Transport == "InProcess" || _isBuiltIn && _form.Transport.Equals("InProcess", StringComparison.OrdinalIgnoreCase))
+            {
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" checked disabled />
+                    <label class="form-check-label">In-process (built-in only)</label>
+                </div>
+            }
+        </div>
+
+        @if (_form.Transport.Equals("stdio", StringComparison.OrdinalIgnoreCase))
+        {
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Command</label>
+                <input type="text" class="form-control" @bind="_form.Command"
+                       placeholder="npx" disabled="@_isBuiltIn" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Arguments (one per line)</label>
+                <textarea class="form-control" rows="3" @bind="_argsText"
+                          placeholder="-y&#10;@@modelcontextprotocol/server-memory" disabled="@_isBuiltIn"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Environment variables (KEY=value, one per line)</label>
+                <textarea class="form-control" rows="3" @bind="_envText"
+                          placeholder="GITHUB_TOKEN=ghp_..." disabled="@_isBuiltIn"></textarea>
+                <div class="form-text">Stored encrypted via DPAPI on this machine.</div>
+            </div>
+        }
+        else if (_form.Transport.Equals("http", StringComparison.OrdinalIgnoreCase))
+        {
+            <div class="mb-3">
+                <label class="form-label fw-semibold">URL</label>
+                <input type="text" class="form-control" @bind="_form.Url"
+                       placeholder="https://example.com/mcp" disabled="@_isBuiltIn" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Headers (KEY=value, one per line)</label>
+                <textarea class="form-control" rows="3" @bind="_headersText"
+                          placeholder="Authorization=Bearer ..." disabled="@_isBuiltIn"></textarea>
+                <div class="form-text">Stored encrypted via DPAPI on this machine.</div>
+            </div>
+        }
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="enabled" @bind="_form.Enabled" />
+            <label class="form-check-label" for="enabled">Enabled</label>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_busy">
+                @if (_busy) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                Save
+            </button>
+            @if (!_isBuiltIn)
+            {
+                <button class="btn btn-outline-info" @onclick="TestAsync" disabled="@_busy">Test connection</button>
+            }
+            <button class="btn btn-outline-secondary" @onclick="@(() => Nav.NavigateTo("/settings/mcp"))">Cancel</button>
+        </div>
+
+        @if (_lastTest is not null)
+        {
+            <div class="mt-3">
+                @if (_lastTest.Ok)
+                {
+                    <div class="alert alert-success py-2 small">
+                        ✅ Connected. @_lastTest.Tools.Length tool(s):
+                        <ul class="mb-0 small">
+                            @foreach (var t in _lastTest.Tools)
+                            {
+                                <li><code>@t.Name</code> @(t.Description is { Length: > 0 } ? $"— {t.Description}" : "")</li>
+                            }
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-danger py-2 small">❌ @_lastTest.Error</div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+    [SupplyParameterFromQuery] public string? PrefillName { get; set; }
+    [SupplyParameterFromQuery] public string? PrefillTransport { get; set; }
+    [SupplyParameterFromQuery] public string? PrefillCommand { get; set; }
+    [SupplyParameterFromQuery] public string? PrefillArgs { get; set; }
+    [SupplyParameterFromQuery] public string? PrefillUrl { get; set; }
+
+    private bool _loading = true;
+    private bool _busy;
+    private bool _saved;
+    private bool _isBuiltIn;
+    private string? _error;
+    private McpDtos.ServerWriteRequest _form = new();
+    private string _argsText = string.Empty;
+    private string _envText = string.Empty;
+    private string _headersText = string.Empty;
+    private McpDtos.TestResult? _lastTest;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Id is not null)
+            {
+                var http = HttpClientFactory.CreateClient("gateway");
+                var item = await http.GetFromJsonAsync<McpDtos.McpServerListItem>($"/api/mcp/servers/{Id}");
+                if (item is not null)
+                {
+                    _form = new McpDtos.ServerWriteRequest
+                    {
+                        Name = item.Name,
+                        Transport = item.Transport.Equals("InProcess", StringComparison.OrdinalIgnoreCase)
+                                       ? "InProcess" : item.Transport.ToLowerInvariant(),
+                        Command = item.Command,
+                        Args = item.Args.ToList(),
+                        Url = item.Url,
+                        Enabled = item.Enabled,
+                    };
+                    _argsText = string.Join('\n', item.Args);
+                    _isBuiltIn = item.IsBuiltIn;
+                }
+            }
+            else
+            {
+                _form.Name = PrefillName ?? string.Empty;
+                _form.Transport = (PrefillTransport ?? "stdio").ToLowerInvariant();
+                _form.Command = PrefillCommand;
+                _form.Url = PrefillUrl;
+                if (!string.IsNullOrEmpty(PrefillArgs))
+                {
+                    _form.Args = PrefillArgs.Split('\u001f', StringSplitOptions.RemoveEmptyEntries).ToList();
+                    _argsText = string.Join('\n', _form.Args);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load MCP server form");
+            _error = ex.Message;
+        }
+        finally { _loading = false; }
+    }
+
+    private void SyncTextFieldsToForm()
+    {
+        _form.Args = SplitLines(_argsText);
+        _form.Env = ParseKvLines(_envText);
+        _form.Headers = ParseKvLines(_headersText);
+    }
+
+    private async Task SaveAsync()
+    {
+        _busy = true; _error = null; _saved = false;
+        SyncTextFieldsToForm();
+        try
+        {
+            var http = HttpClientFactory.CreateClient("gateway");
+            HttpResponseMessage resp;
+            if (Id is null)
+                resp = await http.PostAsJsonAsync("/api/mcp/servers", _form);
+            else
+                resp = await http.PutAsJsonAsync($"/api/mcp/servers/{Id}", _form);
+
+            if (resp.IsSuccessStatusCode)
+            {
+                _saved = true;
+                await Task.Delay(500);
+                Nav.NavigateTo("/settings/mcp");
+            }
+            else
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                _error = $"Save failed ({(int)resp.StatusCode}): {body}";
+            }
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _busy = false; }
+    }
+
+    private async Task TestAsync()
+    {
+        _busy = true; _error = null; _lastTest = null;
+        SyncTextFieldsToForm();
+        try
+        {
+            var http = HttpClientFactory.CreateClient("gateway");
+            HttpResponseMessage resp;
+            if (Id is null)
+                resp = await http.PostAsJsonAsync("/api/mcp/servers/test-config", _form);
+            else
+                resp = await http.PostAsync($"/api/mcp/servers/{Id}/test", null);
+            _lastTest = await resp.Content.ReadFromJsonAsync<McpDtos.TestResult>();
+        }
+        catch (Exception ex)
+        {
+            _lastTest = new McpDtos.TestResult(false, Array.Empty<McpDtos.ToolDescriptor>(), ex.Message);
+        }
+        finally { _busy = false; }
+    }
+
+    private static List<string> SplitLines(string? text) =>
+        string.IsNullOrWhiteSpace(text)
+            ? new List<string>()
+            : text.Replace("\r\n", "\n").Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                  .Select(l => l.Trim()).Where(l => l.Length > 0).ToList();
+
+    private static Dictionary<string, string>? ParseKvLines(string? text)
+    {
+        var lines = SplitLines(text);
+        if (lines.Count == 0) return null;
+        var dict = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var line in lines)
+        {
+            var idx = line.IndexOf('=');
+            if (idx <= 0) continue;
+            dict[line[..idx].Trim()] = line[(idx + 1)..].Trim();
+        }
+        return dict.Count == 0 ? null : dict;
+    }
+}

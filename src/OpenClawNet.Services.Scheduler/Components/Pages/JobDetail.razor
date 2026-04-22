@@ -1,0 +1,162 @@
+@page "/jobs/{Id:guid}"
+@using OpenClawNet.Services.Scheduler.Endpoints
+@rendermode InteractiveServer
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Nav
+
+<PageTitle>Job Detail — OpenClawNet Scheduler</PageTitle>
+
+<div class="mb-3">
+    <a href="/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+</div>
+
+@if (_loading)
+{
+    <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+}
+else if (_job is null)
+{
+    <div class="alert alert-warning">Job not found.</div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">@_job.Name</h5>
+            <StatusBadge Status="@_job.Status" />
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Prompt</dt>
+                <dd class="col-sm-9 font-monospace small">@_job.Prompt</dd>
+
+                <dt class="col-sm-3">Recurring</dt>
+                <dd class="col-sm-9">
+                    @if (_job.IsRecurring)
+                    {
+                        <span class="badge bg-info text-dark">@_job.CronExpression</span>
+                    }
+                    else { <span>One-time</span> }
+                </dd>
+
+                <dt class="col-sm-3">Next Run</dt>
+                <dd class="col-sm-9">@FormatDateTime(_job.NextRunAt)</dd>
+
+                <dt class="col-sm-3">Last Run</dt>
+                <dd class="col-sm-9">@FormatDateTime(_job.LastRunAt)</dd>
+
+                <dt class="col-sm-3">Created</dt>
+                <dd class="col-sm-9">@_job.CreatedAt.ToLocalTime().ToString("g")</dd>
+
+                <dt class="col-sm-3">Agent Profile</dt>
+                <dd class="col-sm-9">
+                    @if (!string.IsNullOrEmpty(_job.AgentProfileName))
+                    {
+                        <span class="badge bg-primary">@_job.AgentProfileName</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">default</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <button class="btn btn-sm btn-primary" @onclick="TriggerJob" disabled="@(_job.Status == "cancelled")">
+                <i class="bi bi-play-fill me-1"></i>Trigger Now
+            </button>
+            <button class="btn btn-sm btn-danger" @onclick="CancelJob" disabled="@(_job.Status is "cancelled" or "completed")">
+                <i class="bi bi-x-circle me-1"></i>Cancel Job
+            </button>
+        </div>
+    </div>
+
+    <h5><i class="bi bi-clock-history me-2"></i>Run History</h5>
+    @if (_job.Runs.Count == 0)
+    {
+        <p class="text-muted">No runs yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Status</th>
+                        <th>Started</th>
+                        <th>Completed</th>
+                        <th>Duration</th>
+                        <th>Result / Error</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var (run, i) in _job.Runs.Select((r, i) => (r, i + 1)))
+                    {
+                        <tr>
+                            <td class="text-muted">@(_job.Runs.Count - i + 1)</td>
+                            <td><StatusBadge Status="@run.Status" /></td>
+                            <td class="small">@run.StartedAt.ToLocalTime().ToString("g")</td>
+                            <td class="small">@FormatDateTime(run.CompletedAt)</td>
+                            <td class="small">@FormatDuration(run.StartedAt, run.CompletedAt)</td>
+                            <td class="small text-truncate" style="max-width:300px">
+                                @if (run.Error is not null)
+                                {
+                                    <span class="text-danger">@run.Error</span>
+                                }
+                                else
+                                {
+                                    @run.Result
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private JobDetailDto? _job;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync() => await Load();
+
+    private async Task Load()
+    {
+        _loading = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("scheduler-self");
+            _job = await client.GetFromJsonAsync<JobDetailDto>($"/api/scheduler/jobs/{Id}");
+        }
+        catch { _job = null; }
+        finally { _loading = false; }
+    }
+
+    private async Task TriggerJob()
+    {
+        var client = HttpClientFactory.CreateClient("scheduler-self");
+        await client.PostAsync($"/api/scheduler/jobs/{Id}/trigger", null);
+        await Task.Delay(500);
+        await Load();
+    }
+
+    private async Task CancelJob()
+    {
+        var client = HttpClientFactory.CreateClient("scheduler-self");
+        await client.PostAsync($"/api/scheduler/jobs/{Id}/cancel", null);
+        await Load();
+    }
+
+    private static string FormatDateTime(DateTime? dt) => dt.HasValue ? dt.Value.ToLocalTime().ToString("g") : "—";
+    private static string FormatDuration(DateTime start, DateTime? end)
+    {
+        if (end is null) return "…";
+        var d = end.Value - start;
+        return d.TotalSeconds < 60 ? $"{d.TotalSeconds:F1}s" : $"{d.TotalMinutes:F1}m";
+    }
+}

@@ -1,0 +1,115 @@
+@page "/jobs/{JobId:guid}/runs/{RunId:guid}/events"
+@rendermode InteractiveServer
+@using OpenClawNet.Web.Models.Jobs
+@inject OpenClawNet.Web.Services.JobsClient JobsClient
+
+<PageTitle>OpenClaw .NET - Run Events</PageTitle>
+
+<h3>🕒 Run Timeline</h3>
+<p class="text-muted small">
+    Persisted timeline of what happened during this job run. Survives app restarts (unlike OTEL traces).
+    <a href="/jobs">← Back to Jobs</a>
+</p>
+
+@if (_loading)
+{
+    <p>Loading events…</p>
+}
+else if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_events.Count == 0)
+{
+    <div class="alert alert-info">No events found for this run. Either the run pre-dates the run-events feature, or it was a dry-run.</div>
+}
+else
+{
+    <table class="table table-sm align-top">
+        <thead>
+            <tr>
+                <th style="width:50px">#</th>
+                <th style="width:180px">When</th>
+                <th style="width:140px">Kind</th>
+                <th style="width:160px">Tool</th>
+                <th>Details</th>
+                <th style="width:100px;text-align:right">Duration</th>
+                <th style="width:90px;text-align:right">Tokens</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in _events)
+            {
+                <tr class="@KindRowClass(e.Kind)">
+                    <td>@e.Sequence</td>
+                    <td><small>@e.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</small></td>
+                    <td><span class="badge @KindBadgeClass(e.Kind)">@e.Kind</span></td>
+                    <td>@(e.ToolName ?? "—")</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(e.Message))
+                        {
+                            <div class="small">@e.Message</div>
+                        }
+                        @if (!string.IsNullOrEmpty(e.ArgumentsJson))
+                        {
+                            <details class="small">
+                                <summary>args</summary>
+                                <pre class="bg-light p-2 mb-1" style="white-space:pre-wrap;max-height:200px;overflow:auto;">@e.ArgumentsJson</pre>
+                            </details>
+                        }
+                        @if (!string.IsNullOrEmpty(e.ResultJson))
+                        {
+                            <details class="small">
+                                <summary>result</summary>
+                                <pre class="bg-light p-2 mb-0" style="white-space:pre-wrap;max-height:200px;overflow:auto;">@e.ResultJson</pre>
+                            </details>
+                        }
+                    </td>
+                    <td class="text-end small">@(e.DurationMs.HasValue ? $"{e.DurationMs} ms" : "—")</td>
+                    <td class="text-end small">@(e.TokensUsed.HasValue ? e.TokensUsed.ToString() : "—")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter] public Guid JobId { get; set; }
+    [Parameter] public Guid RunId { get; set; }
+
+    private List<JobRunEventDto> _events = [];
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _events = (await JobsClient.GetRunEventsAsync(JobId, RunId)).ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load events: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static string KindBadgeClass(string kind) => kind switch
+    {
+        "agent_started"   => "bg-info text-dark",
+        "tool_call"       => "bg-primary",
+        "agent_completed" => "bg-success",
+        "agent_failed"    => "bg-danger",
+        "profile_refused" => "bg-warning text-dark",
+        _                 => "bg-secondary"
+    };
+
+    private static string KindRowClass(string kind) => kind switch
+    {
+        "agent_failed" => "table-danger",
+        _              => string.Empty
+    };
+}

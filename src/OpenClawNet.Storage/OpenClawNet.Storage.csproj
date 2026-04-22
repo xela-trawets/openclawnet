@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="*" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="*" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="*" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="*" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenClawNet.Models.Abstractions\OpenClawNet.Models.Abstractions.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Mcp.Abstractions\OpenClawNet.Mcp.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenClawNet.UnitTests" />
+  </ItemGroup>
+
+</Project>

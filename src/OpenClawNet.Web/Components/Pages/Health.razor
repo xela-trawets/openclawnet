@@ -1,0 +1,113 @@
+@page "/health"
+@inject IConfiguration Configuration
+@rendermode InteractiveServer
+
+<PageTitle>OpenClaw .NET - Health</PageTitle>
+
+<h3>System Health</h3>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Gateway</h5>
+                <span class="badge @(_gatewayStatus ? "bg-success" : "bg-danger") fs-6">
+                    @(_gatewayStatus ? "✓ Connected" : "✗ Disconnected")
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Ollama</h5>
+                <span class="badge @(_ollamaStatus ? "bg-success" : "bg-warning") fs-6">
+                    @(_ollamaStatus ? "✓ Available" : "⚠ Not Detected")
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Database</h5>
+                <span class="badge bg-success fs-6">✓ SQLite</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">System Information</div>
+    <div class="card-body">
+        <table class="table table-sm mb-0">
+            <tr><td>Application</td><td>OpenClawNet v0.1.0</td></tr>
+            <tr><td>Runtime</td><td>.NET @Environment.Version</td></tr>
+            <tr><td>OS</td><td>@Environment.OSVersion</td></tr>
+            <tr><td>Machine</td><td>@Environment.MachineName</td></tr>
+            <tr><td>Processors</td><td>@Environment.ProcessorCount</td></tr>
+            <tr><td>Working Directory</td><td>@Environment.CurrentDirectory</td></tr>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3">
+    <button class="btn btn-outline-primary btn-sm" @onclick="RefreshStatus">🔄 Refresh</button>
+</div>
+
+@code {
+    private bool _gatewayStatus;
+    private bool _ollamaStatus;
+    private string _gatewayHealthUrl = string.Empty;
+    private string _ollamaBaseUrl = string.Empty;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _gatewayHealthUrl = $"{ResolveGatewayUrl()}/health";
+        _ollamaBaseUrl = ResolveOllamaBaseUrl();
+        await RefreshStatus();
+    }
+    
+    private async Task RefreshStatus()
+    {
+        // Check Gateway
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            var response = await http.GetAsync(_gatewayHealthUrl);
+            _gatewayStatus = response.IsSuccessStatusCode;
+        }
+        catch { _gatewayStatus = false; }
+        
+        // Check Ollama
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            var response = await http.GetAsync($"{_ollamaBaseUrl}/api/tags");
+            _ollamaStatus = response.IsSuccessStatusCode;
+        }
+        catch { _ollamaStatus = false; }
+        
+        StateHasChanged();
+    }
+
+    private string ResolveGatewayUrl()
+    {
+        var configuredUrl = Configuration["Services:gateway:https:0"]
+            ?? Configuration["Services:gateway:http:0"]
+            ?? Configuration["OpenClawNet:GatewayBaseUrl"]
+            ?? "https://localhost:7100";
+
+        return configuredUrl.TrimEnd('/');
+    }
+
+    private string ResolveOllamaBaseUrl()
+    {
+        var configuredUrl = Configuration.GetConnectionString("ollama")
+            ?? Configuration["OpenClawNet:OllamaBaseUrl"]
+            ?? Configuration["Model:Endpoint"]
+            ?? "http://localhost:11434";
+
+        return configuredUrl.TrimEnd('/');
+    }
+}

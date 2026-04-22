@@ -1,0 +1,82 @@
+@* 
+   ToolApprovalCard — inline chat-thread card asking the user to approve or deny a tool call.
+   Wave 4 PR-1 (Lambert): UI scaffolding only. Backend NDJSON event wiring lands in Dallas's PR-2.
+   See decisions.md "Wave 4 tool approval" + docs/analysis/tool-approval-design.md.
+*@
+<div class="card border-warning shadow-sm mb-3 tool-approval-card" data-testid="tool-approval-card" role="region" aria-label="Tool approval required">
+    <div class="card-header bg-warning bg-opacity-25 d-flex align-items-center">
+        <span class="me-2" aria-hidden="true">🛡️</span>
+        <strong>Awaiting your approval</strong>
+        <span class="badge bg-warning text-dark ms-2">@ToolName</span>
+    </div>
+    <div class="card-body">
+        @if (!string.IsNullOrWhiteSpace(ToolDescription))
+        {
+            <p class="text-muted small mb-2">@ToolDescription</p>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(ToolArgsJson))
+        {
+            <details class="mb-3">
+                <summary class="small text-muted">View arguments</summary>
+                <pre class="bg-light p-2 small mb-0" style="white-space:pre-wrap;word-break:break-word;max-height:240px;overflow:auto;">@ToolArgsJson</pre>
+            </details>
+        }
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="@_rememberId" @bind="_rememberForSession" />
+            <label class="form-check-label small" for="@_rememberId">
+                Remember for this session (auto-approve <code>@ToolName</code> in this chat)
+            </label>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success btn-sm" @onclick="HandleApprove" disabled="@_busy">
+                <span aria-hidden="true">✓</span> Approve
+            </button>
+            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="HandleDeny" disabled="@_busy">
+                <span aria-hidden="true">✗</span> Deny
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly string _rememberId = $"remember-{Guid.NewGuid():N}";
+    private bool _rememberForSession;
+    private bool _busy;
+
+    /// <summary>Name of the tool the agent wants to invoke (e.g. "shell").</summary>
+    [Parameter, EditorRequired] public string ToolName { get; set; } = string.Empty;
+
+    /// <summary>Optional human-friendly description of the tool.</summary>
+    [Parameter] public string? ToolDescription { get; set; }
+
+    /// <summary>JSON-serialized arguments for the pending tool call.</summary>
+    [Parameter] public string? ToolArgsJson { get; set; }
+
+    /// <summary>
+    /// Invoked when the user clicks Approve. Argument is the value of the
+    /// "Remember for this session" checkbox.
+    /// </summary>
+    [Parameter] public EventCallback<bool> OnApprove { get; set; }
+
+    /// <summary>Invoked when the user clicks Deny.</summary>
+    [Parameter] public EventCallback OnDeny { get; set; }
+
+    private async Task HandleApprove()
+    {
+        if (_busy) return;
+        _busy = true;
+        try { await OnApprove.InvokeAsync(_rememberForSession); }
+        finally { _busy = false; }
+    }
+
+    private async Task HandleDeny()
+    {
+        if (_busy) return;
+        _busy = true;
+        try { await OnDeny.InvokeAsync(); }
+        finally { _busy = false; }
+    }
+}

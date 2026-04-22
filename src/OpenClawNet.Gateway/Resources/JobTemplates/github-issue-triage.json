@@ -1,0 +1,17 @@
+{
+  "id": "github-issue-triage",
+  "name": "GitHub issue triage",
+  "description": "Pull recent open issues from a repo, fetch context from a linked URL if present, and produce a triage table (priority / area / suggested action).",
+  "category": "github",
+  "docsUrl": "https://github.com/elbruno/openclawnet-plan/blob/main/docs/demos/tools/02-github-issue-triage/README.md",
+  "prerequisites": [
+    "A GITHUB_TOKEN secret is set (PUT /api/secrets/GITHUB_TOKEN) for higher rate limits and private repos.",
+    "Replace the OWNER/REPO placeholder in the prompt with the repository you want to triage."
+  ],
+  "requiredSecrets": ["GITHUB_TOKEN"],
+  "requiredTools": ["github", "html_query"],
+  "defaultJob": {
+    "name": "GitHub issue triage — OWNER/REPO",
+    "prompt": "Use the github tool to list the 10 most recent OPEN issues for OWNER/REPO. For any issue body that contains an http(s) URL, call html_query to extract the page title and first paragraph. Produce a Markdown table with columns: # | Title | Area | Priority (P0/P1/P2) | Suggested next action. Be terse — one row per issue."
+  }
+}

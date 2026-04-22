@@ -1,0 +1,113 @@
+@page "/settings/mcp/suggestions"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@using OpenClawNet.Web.Components.Pages.McpSettings
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Nav
+@inject ILogger<Suggestions> Logger
+
+<PageTitle>OpenClaw .NET - MCP Suggestions</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Curated Suggestions</h3>
+    <button class="btn btn-outline-secondary btn-sm" @onclick="@(() => Nav.NavigateTo("/settings/mcp"))">Back</button>
+</div>
+<p class="text-muted small">Vetted MCP servers we recommend trying. One-click install creates a disabled entry — review and enable from the list.</p>
+
+@if (_loading)
+{
+    <div class="text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>
+}
+else if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger py-2 small">@_error</div>
+}
+else
+{
+    @foreach (var group in _suggestions.GroupBy(s => s.Category ?? "other").OrderBy(g => g.Key))
+    {
+        <h5 class="mt-4 text-uppercase small text-muted">@group.Key</h5>
+        <div class="row g-3">
+            @foreach (var s in group)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title mb-1"><code>@s.Name</code></h6>
+                            <p class="card-text small text-muted flex-grow-1">@s.Description</p>
+                            @if (s.RequiresEnv.Length > 0)
+                            {
+                                <div class="small text-warning mb-2">
+                                    Requires: @string.Join(", ", s.RequiresEnv)
+                                </div>
+                            }
+                            <div class="d-flex justify-content-between align-items-center">
+                                @if (!string.IsNullOrEmpty(s.Homepage))
+                                {
+                                    <a href="@s.Homepage" target="_blank" rel="noopener" class="small">Homepage ↗</a>
+                                }
+                                else
+                                {
+                                    <span></span>
+                                }
+                                <button class="btn btn-sm btn-primary" @onclick="() => InstallAsync(s)" disabled="@_busy">
+                                    Install
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    private bool _loading = true;
+    private bool _busy;
+    private string? _error;
+    private List<McpDtos.Suggestion> _suggestions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var http = HttpClientFactory.CreateClient("gateway");
+            var result = await http.GetFromJsonAsync<List<McpDtos.Suggestion>>("/api/mcp/suggestions");
+            _suggestions = result ?? new();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load suggestions");
+            _error = "Could not load suggestions.";
+        }
+        finally { _loading = false; }
+    }
+
+    private async Task InstallAsync(McpDtos.Suggestion s)
+    {
+        _busy = true;
+        try
+        {
+            var http = HttpClientFactory.CreateClient("gateway");
+            var resp = await http.PostAsync($"/api/mcp/suggestions/{s.Id}/install", null);
+            if (resp.IsSuccessStatusCode)
+            {
+                var item = await resp.Content.ReadFromJsonAsync<McpDtos.McpServerListItem>();
+                if (item is not null)
+                {
+                    Nav.NavigateTo($"/settings/mcp/{item.Id}");
+                    return;
+                }
+                Nav.NavigateTo("/settings/mcp");
+            }
+            else
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                _error = $"Install failed ({(int)resp.StatusCode}): {body}";
+            }
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _busy = false; }
+    }
+}

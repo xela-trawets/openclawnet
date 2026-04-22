@@ -1,0 +1,19 @@
+{
+  "id": "image-batch-resize",
+  "name": "Image batch resize (hourly)",
+  "description": "Every hour, scan a folder for new images and produce 256×256 WebP thumbnails next to them.",
+  "category": "media",
+  "docsUrl": "https://github.com/elbruno/openclawnet-plan/blob/main/docs/demos/tools/04-image-batch-resize/README.md",
+  "prerequisites": [
+    "Source folder exists (default c:\\temp\\images).",
+    "image_edit writes to <Storage>/binary/image-edit/<timestamp>-<action>.<ext> — the prompt then moves results to the source folder with file_system."
+  ],
+  "requiredSecrets": [],
+  "requiredTools": ["file_system", "image_edit"],
+  "defaultJob": {
+    "name": "Image batch resize",
+    "prompt": "List every .jpg/.jpeg/.png in c:\\temp\\images that does NOT already have a sibling .thumb.webp. For each one: 1) call image_edit with action=resize, width=256, height=256, format=webp; 2) move the produced file from <Storage>/binary/image-edit/ next to the original as <name>.thumb.webp using file_system. Report counts at the end.",
+    "cronExpression": "0 * * * *",
+    "allowConcurrentRuns": false
+  }
+}

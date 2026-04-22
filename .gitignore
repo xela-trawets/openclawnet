@@ -1,0 +1,46 @@
+# .NET
+bin/
+obj/
+*.db
+*.db-shm
+*.db-wal
+
+# Runtime settings (may contain API keys)
+model-settings.json
+.env
+
+# Test Results
+TestResults/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docstates
+*.lscache
+
+# Build
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# NuGet
+*.nupkg
+**/packages/*
+*.nuget.props
+*.nuget.targets
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Aspire
+.aspire/
+
+# AppHost runtime data
+**/.data/
+
+# Node
+node_modules/

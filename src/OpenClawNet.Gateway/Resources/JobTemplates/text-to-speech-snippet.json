@@ -1,0 +1,17 @@
+{
+  "id": "text-to-speech-snippet",
+  "name": "Text-to-speech snippet",
+  "description": "Take a short paragraph and synthesise it to a WAV file using the local text_to_speech tool.",
+  "category": "media",
+  "docsUrl": "https://github.com/elbruno/openclawnet-plan/blob/main/docs/demos/tools/05-text-to-speech-snippet/README.md",
+  "prerequisites": [
+    "First run downloads ~5.5 GB of TTS model weights to <Storage>/models/qwen-tts/.",
+    "text_to_speech requires approval by default — use the Direct Invoke surface for non-interactive runs, or disable approval on the agent profile used by this job."
+  ],
+  "requiredSecrets": [],
+  "requiredTools": ["text_to_speech"],
+  "defaultJob": {
+    "name": "Text to speech — sample snippet",
+    "prompt": "Call text_to_speech with the following text and write the WAV result to c:\\temp\\tts\\sample.wav: 'Hello from OpenClawNet. This is a short text-to-speech sample produced by the local text_to_speech tool. Replace this text with whatever you want to synthesise.'"
+  }
+}

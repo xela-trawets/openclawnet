@@ -1,0 +1,702 @@
+@page "/jobs"
+@rendermode InteractiveServer
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+
+<PageTitle>OpenClaw .NET - Jobs</PageTitle>
+
+<h3>Scheduled Jobs</h3>
+
+<p class="text-muted">
+    Manage scheduled prompts and recurring automation tasks. Jobs are created by the agent
+    using the <code>schedule</code> tool or through the API.
+</p>
+
+@* ── Demo Templates ── *@
+<div class="mb-4 p-3 rounded-3" style="background:linear-gradient(135deg,#fff7ed 0%,#fef3c7 50%,#fde68a 100%);border:1px solid #f59e0b;">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <h5 class="mb-0">🎯 Demo Templates</h5>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="() => _showDemoTemplates = !_showDemoTemplates">
+            @(_showDemoTemplates ? "▲ Collapse" : "▼ Expand")
+        </button>
+    </div>
+    <p class="text-muted small mb-2">Launch pre-configured demo scenarios with one click — no curl required.</p>
+
+    @if (_showDemoTemplates)
+    {
+        <div class="row g-3">
+            @* ── Document Processing Pipeline Card ── *@
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <h6 class="card-title mb-1">📄 Document Processing Pipeline</h6>
+                        <p class="card-text small text-muted mb-2">
+                            Scans a folder for documents every 30 seconds, generates summaries, and tracks processing status.
+                            Runs for 5 minutes — perfect for a live demo.
+                        </p>
+
+                        @if (_demoStatusLoading)
+                        {
+                            <div class="text-muted small">
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span> Checking status…
+                            </div>
+                        }
+                        else if (_demoPipelineStatus is not null)
+                        {
+                            @* Pipeline already exists — show status *@
+                            <div class="card border-0 bg-light">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="badge @GetStatusBadgeClass(_demoPipelineStatus.JobStatus) me-2">@_demoPipelineStatus.JobStatus</span>
+                                        <span class="small text-muted">Pipeline running</span>
+                                    </div>
+                                    <table class="table table-sm table-borderless mb-0 small">
+                                        <tr><td class="text-muted" style="width:110px">Runs</td><td>@_demoPipelineStatus.CompletedRuns completed · @_demoPipelineStatus.FailedRuns failed · @_demoPipelineStatus.TotalRuns total</td></tr>
+                                        <tr><td class="text-muted">Next run</td><td>@(_demoPipelineStatus.NextRunAt?.ToLocalTime().ToString("g") ?? "—")</td></tr>
+                                        <tr><td class="text-muted">Ends at</td><td>@(_demoPipelineStatus.EndsAt?.ToLocalTime().ToString("g") ?? "—")</td></tr>
+                                        @if (_demoPipelineStatus.LatestRun is not null)
+                                        {
+                                            <tr><td class="text-muted">Latest run</td><td><span class="badge @GetStatusBadgeClass(_demoPipelineStatus.LatestRun.Status)">@_demoPipelineStatus.LatestRun.Status</span> @(_demoPipelineStatus.LatestRun.CompletedAt?.ToLocalTime().ToString("g") ?? "")</td></tr>
+                                        }
+                                    </table>
+                                    <button class="btn btn-outline-primary btn-sm mt-2 me-1" @onclick="CheckDocPipelineStatus">
+                                        🔄 Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            @* No pipeline — show launch button *@
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-warning btn-sm" @onclick="LaunchDocPipeline" disabled="@_demoLaunching">
+                                    @if (_demoLaunching)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                        <span>Launching…</span>
+                                    }
+                                    else
+                                    {
+                                        <span>🚀 Launch Demo</span>
+                                    }
+                                </button>
+                                <span class="small text-muted">30s interval · 5 min duration</span>
+                            </div>
+                        }
+
+                        @if (_demoMessage is not null)
+                        {
+                            <div class="alert @_demoMessageClass py-2 small mt-2 mb-0">@_demoMessage</div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* ── Website Watcher Card ── *@
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <h6 class="card-title mb-1">🌐 Website Watcher</h6>
+                        <p class="card-text small text-muted mb-2">
+                            Fetches a URL every 15 minutes, hashes the response, and appends a one-line entry to
+                            <code>docs/watch-log.txt</code> when the page changes.
+                        </p>
+
+                        @if (_watcherStatus is not null)
+                        {
+                            <div class="card border-0 bg-light">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="badge @GetStatusBadgeClass(_watcherStatus.JobStatus) me-2">@_watcherStatus.JobStatus</span>
+                                        <span class="small text-muted">Watcher running</span>
+                                    </div>
+                                    <table class="table table-sm table-borderless mb-0 small">
+                                        <tr><td class="text-muted" style="width:110px">Runs</td><td>@_watcherStatus.CompletedRuns completed · @_watcherStatus.FailedRuns failed · @_watcherStatus.TotalRuns total</td></tr>
+                                        <tr><td class="text-muted">Next run</td><td>@(_watcherStatus.NextRunAt?.ToLocalTime().ToString("g") ?? "—")</td></tr>
+                                    </table>
+                                    <button class="btn btn-outline-primary btn-sm mt-2" @onclick="CheckWebsiteWatcherStatus">🔄 Refresh</button>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mb-2">
+                                <input type="text" class="form-control form-control-sm" @bind="_watcherUrl" placeholder="https://example.com" />
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-warning btn-sm" @onclick="LaunchWebsiteWatcher" disabled="@_watcherLaunching">
+                                    @if (_watcherLaunching)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                        <span>Launching…</span>
+                                    }
+                                    else
+                                    {
+                                        <span>🚀 Launch Demo</span>
+                                    }
+                                </button>
+                                <span class="small text-muted">Every 15 min</span>
+                            </div>
+                        }
+
+                        @if (_watcherMessage is not null)
+                        {
+                            <div class="alert @_watcherMessageClass py-2 small mt-2 mb-0">@_watcherMessage</div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* ── Folder Health Report Card ── *@
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <h6 class="card-title mb-1">📁 Folder Health Report</h6>
+                        <p class="card-text small text-muted mb-2">
+                            Runs daily at 09:00 UTC: lists a folder, summarises file count + size + most recent file,
+                            and writes a markdown report to <code>docs/folder-health-{date}.md</code>.
+                        </p>
+
+                        @if (_folderStatus is not null)
+                        {
+                            <div class="card border-0 bg-light">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="badge @GetStatusBadgeClass(_folderStatus.JobStatus) me-2">@_folderStatus.JobStatus</span>
+                                        <span class="small text-muted">Report job active</span>
+                                    </div>
+                                    <table class="table table-sm table-borderless mb-0 small">
+                                        <tr><td class="text-muted" style="width:110px">Runs</td><td>@_folderStatus.CompletedRuns completed · @_folderStatus.FailedRuns failed · @_folderStatus.TotalRuns total</td></tr>
+                                        <tr><td class="text-muted">Next run</td><td>@(_folderStatus.NextRunAt?.ToLocalTime().ToString("g") ?? "—")</td></tr>
+                                    </table>
+                                    <button class="btn btn-outline-primary btn-sm mt-2" @onclick="CheckFolderHealthStatus">🔄 Refresh</button>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mb-2">
+                                <input type="text" class="form-control form-control-sm" @bind="_folderPath" placeholder="C:\src\openclawnet-plan\docs" />
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-warning btn-sm" @onclick="LaunchFolderHealth" disabled="@_folderLaunching">
+                                    @if (_folderLaunching)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                        <span>Launching…</span>
+                                    }
+                                    else
+                                    {
+                                        <span>🚀 Launch Demo</span>
+                                    }
+                                </button>
+                                <span class="small text-muted">Daily at 09:00 UTC</span>
+                            </div>
+                        }
+
+                        @if (_folderMessage is not null)
+                        {
+                            <div class="alert @_folderMessageClass py-2 small mt-2 mb-0">@_folderMessage</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="mb-3">
+    <a href="/jobs/new" class="btn btn-primary btn-sm">+ New Job</a>
+</div>
+
+@if (_actionError is not null)
+{
+    <div class="alert alert-danger alert-dismissible py-2 small">
+        ⚠️ @_actionError
+        <button type="button" class="btn-close btn-sm" @onclick="() => _actionError = null"></button>
+    </div>
+}
+
+@if (_loading)
+{
+    <div class="text-center py-4 text-muted">Loading jobs…</div>
+}
+else if (_loadError is not null)
+{
+    <div class="alert alert-danger">
+        <strong>Could not load jobs.</strong> Is the Gateway running?<br />
+        <small>@_loadError</small>
+    </div>
+}
+else if (_jobs.Count == 0)
+{
+    <div class="alert alert-info">
+        No scheduled jobs yet. Create one above or ask the agent to schedule a reminder.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Type</th>
+                    <th>Next Run</th>
+                    <th>Last Run</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var job in _jobs)
+                {
+                    <tr>
+                        <td>
+                            <a href="/jobs/@job.Id" class="text-decoration-none">
+                                <strong>@job.Name</strong>
+                            </a>
+                            <div class="small text-muted">@TruncatePrompt(job.Prompt)</div>
+                        </td>
+                        <td>
+                            <span class="badge @GetStatusBadgeClass(job.Status)">@job.Status</span>
+                        </td>
+                        <td>
+                            @if (job.IsRecurring)
+                            {
+                                <span class="badge bg-info">🔄 Recurring</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">One-time</span>
+                            }
+                        </td>
+                        <td class="small">@(job.NextRunAt?.ToLocalTime().ToString("g") ?? "—")</td>
+                        <td class="small">@(job.LastRunAt?.ToLocalTime().ToString("g") ?? "Never")</td>
+                        <td>
+                            @switch (job.Status?.ToLowerInvariant())
+                            {
+                                case "draft":
+                                    <button class="btn btn-sm btn-success me-1" @onclick="() => StartJob(job.Id)" title="Start">▶ Start</button>
+                                    <a href="/jobs/@job.Id/edit" class="btn btn-sm btn-outline-primary me-1" title="Edit">✏️ Edit</a>
+                                    <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => DuplicateJob(job)" title="Duplicate">📋 Duplicate</button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteJob(job.Id)" title="Delete">🗑️ Delete</button>
+                                    break;
+                                case "active":
+                                    <button class="btn btn-sm btn-warning me-1" @onclick="() => PauseJob(job.Id)" title="Pause">⏸ Pause</button>
+                                    <button class="btn btn-sm btn-danger" @onclick="() => CancelJob(job.Id)" title="Cancel">⏹ Cancel</button>
+                                    break;
+                                case "paused":
+                                    <button class="btn btn-sm btn-success me-1" @onclick="() => ResumeJob(job.Id)" title="Resume">▶ Resume</button>
+                                    <button class="btn btn-sm btn-danger me-1" @onclick="() => CancelJob(job.Id)" title="Cancel">⏹ Cancel</button>
+                                    <a href="/jobs/@job.Id/edit" class="btn btn-sm btn-outline-primary" title="Edit">✏️ Edit</a>
+                                    break;
+                                case "cancelled":
+                                case "completed":
+                                    <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => DuplicateJob(job)" title="Duplicate">📋 Duplicate</button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteJob(job.Id)" title="Delete">🗑️ Delete</button>
+                                    break;
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    // ── State ──
+    private List<JobInfo> _jobs = [];
+    private bool _loading = true;
+    private string? _loadError;
+    private string? _actionError;
+
+    // Demo templates
+    private bool _showDemoTemplates = true;
+    private bool _demoStatusLoading;
+    private bool _demoLaunching;
+    private string? _demoMessage;
+    private string _demoMessageClass = "alert-info";
+    private DocPipelineStatusInfo? _demoPipelineStatus;
+
+    // Website Watcher demo
+    private string _watcherUrl = "https://example.com";
+    private bool _watcherLaunching;
+    private string? _watcherMessage;
+    private string _watcherMessageClass = "alert-info";
+    private DocPipelineStatusInfo? _watcherStatus;
+
+    // Folder Health demo
+    private string _folderPath = @"C:\src\openclawnet-plan\docs";
+    private bool _folderLaunching;
+    private string? _folderMessage;
+    private string _folderMessageClass = "alert-info";
+    private DocPipelineStatusInfo? _folderStatus;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(
+            LoadJobsAsync(),
+            CheckDocPipelineStatus(),
+            CheckWebsiteWatcherStatus(),
+            CheckFolderHealthStatus());
+    }
+
+    // ── Load jobs from API ──
+
+    private async Task LoadJobsAsync()
+    {
+        _loading = true;
+        _loadError = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var result = await client.GetFromJsonAsync<List<JobInfo>>("api/jobs");
+            _jobs = result ?? [];
+        }
+        catch (Exception ex)
+        {
+            _loadError = ex.Message;
+            _jobs = [];
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    // ── Lifecycle actions (call Scheduler service directly) ──
+
+    private async Task StartJob(Guid jobId)
+    {
+        await LifecycleActionAsync(jobId, "start");
+    }
+
+    private async Task PauseJob(Guid jobId)
+    {
+        await LifecycleActionAsync(jobId, "pause");
+    }
+
+    private async Task ResumeJob(Guid jobId)
+    {
+        await LifecycleActionAsync(jobId, "resume");
+    }
+
+    private async Task CancelJob(Guid jobId)
+    {
+        await LifecycleActionAsync(jobId, "cancel");
+    }
+
+    private async Task LifecycleActionAsync(Guid jobId, string action)
+    {
+        _actionError = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("scheduler");
+            var response = await client.PostAsync($"api/scheduler/jobs/{jobId}/{action}", null);
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadJobsAsync();
+            }
+            else
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                _actionError = $"Action '{action}' failed ({(int)response.StatusCode}). {body}";
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            _actionError = $"Could not reach the Scheduler. {ex.Message}";
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteJob(Guid jobId)
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var response = await client.DeleteAsync($"api/jobs/{jobId}");
+            if (response.IsSuccessStatusCode)
+                await LoadJobsAsync();
+        }
+        catch { /* Gateway may not be running */ }
+    }
+
+    private void DuplicateJob(JobInfo job)
+    {
+        // Navigate to create page with query params for pre-fill
+        // For now, just navigate to create - pre-fill can be added in future PR
+        Navigation.NavigateTo("/jobs/new");
+    }
+
+    private static string TruncatePrompt(string? prompt)
+    {
+        if (string.IsNullOrEmpty(prompt)) return "—";
+        return prompt.Length <= 60 ? prompt : $"{prompt[..60]}…";
+    }
+
+    private static string GetStatusBadgeClass(string? status) => status?.ToLowerInvariant() switch
+    {
+        "draft" => "bg-secondary",
+        "active" => "bg-success",
+        "paused" => "bg-warning",
+        "cancelled" => "bg-danger",
+        "completed" => "bg-info",
+        _ => "bg-light"
+    };
+
+    // ── DTOs ──
+
+    private sealed record JobInfo(
+        Guid Id,
+        string? Name,
+        string? Prompt,
+        string? Status,
+        bool IsRecurring,
+        string? CronExpression,
+        DateTime? NextRunAt,
+        DateTime? LastRunAt,
+        DateTime? StartAt = null,
+        DateTime? EndAt = null,
+        string? TimeZone = null,
+        string? NaturalLanguageSchedule = null,
+        bool AllowConcurrentRuns = false);
+
+    // ── Demo Pipeline ──
+
+    private async Task LaunchDocPipeline()
+    {
+        _demoLaunching = true;
+        _demoMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var payload = new
+            {
+                folderPath = @"C:\src\openclawnet-plan\docs\sampleDocs",
+                intervalSeconds = 30,
+                durationMinutes = 5
+            };
+
+            var response = await client.PostAsJsonAsync("api/demos/doc-pipeline/setup", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _demoMessage = "✅ Pipeline launched! It will run every 30s for 5 minutes.";
+                _demoMessageClass = "alert-success";
+                await Task.WhenAll(LoadJobsAsync(), CheckDocPipelineStatus());
+            }
+            else if ((int)response.StatusCode == 409)
+            {
+                _demoMessage = "ℹ️ Pipeline already running — check status below.";
+                _demoMessageClass = "alert-info";
+                await CheckDocPipelineStatus();
+            }
+            else
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                _demoMessage = $"⚠️ Launch failed ({(int)response.StatusCode}). {body}";
+                _demoMessageClass = "alert-danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            _demoMessage = $"⚠️ Could not reach the Gateway. {ex.Message}";
+            _demoMessageClass = "alert-danger";
+        }
+        finally
+        {
+            _demoLaunching = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CheckDocPipelineStatus()
+    {
+        _demoStatusLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var response = await client.GetAsync("api/demos/doc-pipeline/status");
+
+            if (response.IsSuccessStatusCode)
+            {
+                _demoPipelineStatus = await response.Content.ReadFromJsonAsync<DocPipelineStatusInfo>();
+            }
+            else
+            {
+                // 404 = no pipeline yet — that's fine, show the launch button
+                _demoPipelineStatus = null;
+            }
+        }
+        catch
+        {
+            _demoPipelineStatus = null;
+        }
+        finally
+        {
+            _demoStatusLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private sealed record DocPipelineRunDetail
+    {
+        public Guid RunId { get; init; }
+        public string Status { get; init; } = "";
+        public DateTime StartedAt { get; init; }
+        public DateTime? CompletedAt { get; init; }
+        public string? Result { get; init; }
+        public string? Error { get; init; }
+    }
+
+    private sealed record DocPipelineStatusInfo
+    {
+        public Guid JobId { get; init; }
+        public string JobStatus { get; init; } = "";
+        public DateTime CreatedAt { get; init; }
+        public DateTime? StartsAt { get; init; }
+        public DateTime? EndsAt { get; init; }
+        public DateTime? NextRunAt { get; init; }
+        public DateTime? LastRunAt { get; init; }
+        public int TotalRuns { get; init; }
+        public int CompletedRuns { get; init; }
+        public int FailedRuns { get; init; }
+        public DocPipelineRunDetail? LatestRun { get; init; }
+    }
+
+    // ── Website Watcher demo ──
+
+    private async Task LaunchWebsiteWatcher()
+    {
+        _watcherLaunching = true;
+        _watcherMessage = null;
+        StateHasChanged();
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var payload = new { url = _watcherUrl };
+            var response = await client.PostAsJsonAsync("api/demos/website-watcher/setup", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _watcherMessage = "✅ Watcher launched! It will check the URL every 15 minutes.";
+                _watcherMessageClass = "alert-success";
+                await Task.WhenAll(LoadJobsAsync(), CheckWebsiteWatcherStatus());
+            }
+            else if ((int)response.StatusCode == 409)
+            {
+                _watcherMessage = "ℹ️ A watcher job is already running.";
+                _watcherMessageClass = "alert-info";
+                await CheckWebsiteWatcherStatus();
+            }
+            else
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                _watcherMessage = $"⚠️ Launch failed ({(int)response.StatusCode}). {body}";
+                _watcherMessageClass = "alert-danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            _watcherMessage = $"⚠️ Could not reach the Gateway. {ex.Message}";
+            _watcherMessageClass = "alert-danger";
+        }
+        finally
+        {
+            _watcherLaunching = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CheckWebsiteWatcherStatus()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var response = await client.GetAsync("api/demos/website-watcher/status");
+            _watcherStatus = response.IsSuccessStatusCode
+                ? await response.Content.ReadFromJsonAsync<DocPipelineStatusInfo>()
+                : null;
+        }
+        catch
+        {
+            _watcherStatus = null;
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    // ── Folder Health demo ──
+
+    private async Task LaunchFolderHealth()
+    {
+        _folderLaunching = true;
+        _folderMessage = null;
+        StateHasChanged();
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var payload = new { folderPath = _folderPath };
+            var response = await client.PostAsJsonAsync("api/demos/folder-health/setup", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _folderMessage = "✅ Folder health report scheduled for 09:00 UTC daily.";
+                _folderMessageClass = "alert-success";
+                await Task.WhenAll(LoadJobsAsync(), CheckFolderHealthStatus());
+            }
+            else if ((int)response.StatusCode == 409)
+            {
+                _folderMessage = "ℹ️ A folder-health-report job is already running.";
+                _folderMessageClass = "alert-info";
+                await CheckFolderHealthStatus();
+            }
+            else
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                _folderMessage = $"⚠️ Launch failed ({(int)response.StatusCode}). {body}";
+                _folderMessageClass = "alert-danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            _folderMessage = $"⚠️ Could not reach the Gateway. {ex.Message}";
+            _folderMessageClass = "alert-danger";
+        }
+        finally
+        {
+            _folderLaunching = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CheckFolderHealthStatus()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var response = await client.GetAsync("api/demos/folder-health/status");
+            _folderStatus = response.IsSuccessStatusCode
+                ? await response.Content.ReadFromJsonAsync<DocPipelineStatusInfo>()
+                : null;
+        }
+        catch
+        {
+            _folderStatus = null;
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+}

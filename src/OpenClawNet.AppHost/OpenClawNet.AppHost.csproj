@@ -1,0 +1,25 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.2.2">
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenClawNet.Gateway\OpenClawNet.Gateway.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Web\OpenClawNet.Web.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Services.Scheduler\OpenClawNet.Services.Scheduler.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Services.Shell\OpenClawNet.Services.Shell.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Services.Browser\OpenClawNet.Services.Browser.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Services.Channels\OpenClawNet.Services.Channels.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Services.Memory\OpenClawNet.Services.Memory.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.Sqlite" Version="13.1.1" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>90a10297-42b5-4ec4-b9c6-121b94cb54f8</UserSecretsId>
+  </PropertyGroup>
+
+</Project>

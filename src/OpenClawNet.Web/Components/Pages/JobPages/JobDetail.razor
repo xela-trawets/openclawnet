@@ -1,0 +1,452 @@
+@page "/jobs/{JobId:guid}"
+@rendermode InteractiveServer
+@using OpenClawNet.Web.Services
+@using OpenClawNet.Web.Models.Jobs
+@inject JobsClient JobsClient
+@inject NavigationManager Navigation
+
+<PageTitle>Job Detail - OpenClaw .NET</PageTitle>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h3>@(_job?.Name ?? "Job Detail")</h3>
+    <button class="btn btn-outline-secondary btn-sm" @onclick="NavigateBack">
+        <span class="bi bi-arrow-left"></span> Back to Jobs
+    </button>
+</div>
+
+@if (_loading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted mt-2">Loading job details...</p>
+    </div>
+}
+else if (_error is not null)
+{
+    <div class="alert alert-danger">
+        <strong>Error:</strong> @_error
+    </div>
+}
+else if (_job is null)
+{
+    <div class="alert alert-warning">
+        Job not found.
+    </div>
+}
+else
+{
+    @* Overview Section *@
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">Overview</h5>
+            <span class="badge @GetStatusBadgeClass(_job.Status)">@_job.Status.ToUpperInvariant()</span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td class="text-muted" style="width: 150px">Name</td>
+                            <td><strong>@_job.Name</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Agent Profile</td>
+                            <td>@(_job.AgentProfileName ?? "—")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Schedule Type</td>
+                            <td>@(_job.IsRecurring ? "Recurring" : "One-shot")</td>
+                        </tr>
+                        @if (_job.CronExpression is not null)
+                        {
+                            <tr>
+                                <td class="text-muted">Cron Expression</td>
+                                <td><code>@_job.CronExpression</code></td>
+                            </tr>
+                        }
+                        @if (_job.NaturalLanguageSchedule is not null)
+                        {
+                            <tr>
+                                <td class="text-muted">Schedule (Natural)</td>
+                                <td>@_job.NaturalLanguageSchedule</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td class="text-muted" style="width: 150px">Created</td>
+                            <td>@_job.CreatedAt.ToLocalTime().ToString("g")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Next Run</td>
+                            <td>@(_job.NextRunAt?.ToLocalTime().ToString("g") ?? "—")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Last Run</td>
+                            <td>@(_job.LastRunAt?.ToLocalTime().ToString("g") ?? "—")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Start At</td>
+                            <td>@(_job.StartAt?.ToLocalTime().ToString("g") ?? "—")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">End At</td>
+                            <td>@(_job.EndAt?.ToLocalTime().ToString("g") ?? "—")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Timezone</td>
+                            <td>@(_job.TimeZone ?? "UTC")</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-12">
+                    <label class="form-label text-muted">Prompt</label>
+                    <pre class="bg-light p-2 rounded border">@_job.Prompt</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Action Buttons *@
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">Actions</h5>
+        </div>
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                @if (_job.Status.ToLowerInvariant() == "draft")
+                {
+                    <button class="btn btn-success" @onclick="() => StartJobAsync()" disabled="@_actionInProgress">
+                        <span class="bi bi-play-fill"></span> Start
+                    </button>
+                }
+                @if (_job.Status.ToLowerInvariant() == "active")
+                {
+                    <button class="btn btn-warning" @onclick="() => PauseJobAsync()" disabled="@_actionInProgress">
+                        <span class="bi bi-pause-fill"></span> Pause
+                    </button>
+                }
+                @if (_job.Status.ToLowerInvariant() == "paused")
+                {
+                    <button class="btn btn-success" @onclick="() => ResumeJobAsync()" disabled="@_actionInProgress">
+                        <span class="bi bi-play-fill"></span> Resume
+                    </button>
+                }
+                @if (_job.Status.ToLowerInvariant() is "active" or "paused")
+                {
+                    <button class="btn btn-danger" @onclick="() => CancelJobAsync()" disabled="@_actionInProgress">
+                        <span class="bi bi-stop-fill"></span> Cancel
+                    </button>
+                }
+                <button class="btn btn-primary" @onclick="() => ExecuteJobAsync()" disabled="@_actionInProgress">
+                    <span class="bi bi-lightning-fill"></span> Run Now
+                </button>
+                <button class="btn btn-outline-primary" @onclick="() => DryRunAsync()" disabled="@_actionInProgress">
+                    <span class="bi bi-check-circle"></span> Dry-Run
+                </button>
+            </div>
+            @if (_actionError is not null)
+            {
+                <div class="alert alert-danger mt-2 mb-0">@_actionError</div>
+            }
+            @if (_actionSuccess is not null)
+            {
+                <div class="alert alert-success mt-2 mb-0">@_actionSuccess</div>
+            }
+        </div>
+    </div>
+
+    @* Stats Section *@
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">Statistics</h5>
+        </div>
+        <div class="card-body">
+            @if (_statsLoading)
+            {
+                <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Loading stats...</span>
+                    </div>
+                </div>
+            }
+            else if (_statsError is not null)
+            {
+                <div class="alert alert-danger">@_statsError</div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h3 mb-1">@_stats.TotalRuns</div>
+                            <div class="text-muted small">Total Runs</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h3 mb-1 text-success">@_stats.CompletedRuns</div>
+                            <div class="text-muted small">Completed</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h3 mb-1 text-danger">@_stats.FailedRuns</div>
+                            <div class="text-muted small">Failed</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="h3 mb-1">@_stats.SuccessRate.ToString("P0")</div>
+                            <div class="text-muted small">Success Rate</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Run History Section *@
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Run History</h5>
+        </div>
+        <div class="card-body">
+            @if (_job.Runs.Count == 0)
+            {
+                <div class="text-muted text-center py-4">
+                    No runs yet. Click "Run Now" to execute this job.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Started</th>
+                                <th>Status</th>
+                                <th>Duration</th>
+                                <th>Tokens</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var run in _job.Runs)
+                            {
+                                <tr>
+                                    <td>@run.StartedAt.ToLocalTime().ToString("g")</td>
+                                    <td><span class="badge @GetRunStatusBadgeClass(run.Status)">@run.Status</span></td>
+                                    <td>@GetDuration(run)</td>
+                                    <td>@(run.TokensUsed?.ToString() ?? "—")</td>
+                                    <td>
+                                        @if (run.Error is not null)
+                                        {
+                                            <span class="text-danger small" title="@run.Error">@Truncate(run.Error, 50)</span>
+                                        }
+                                        else if (run.Result is not null)
+                                        {
+                                            <span class="small" title="@run.Result">@Truncate(run.Result, 50)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid JobId { get; set; }
+
+    private JobDetailDto? _job;
+    private bool _loading = true;
+    private string? _error;
+    private bool _actionInProgress;
+    private string? _actionError;
+    private string? _actionSuccess;
+    private bool _statsLoading;
+    private string? _statsError;
+
+    private JobStatsResponse _stats = new() { TotalRuns = 0, CompletedRuns = 0, FailedRuns = 0, SuccessRate = 0 };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadJobAsync();
+    }
+
+    private async Task LoadJobAsync()
+    {
+        _loading = true;
+        _error = null;
+        _actionError = null;
+        _actionSuccess = null;
+        StateHasChanged();
+
+        try
+        {
+            _job = await JobsClient.GetAsync(JobId);
+            if (_job is not null)
+            {
+                await LoadStatsAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load job: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadStatsAsync()
+    {
+        _statsLoading = true;
+        _statsError = null;
+        StateHasChanged();
+
+        try
+        {
+            _stats = await JobsClient.GetStatsAsync(JobId);
+        }
+        catch (Exception ex)
+        {
+            _statsError = $"Failed to load stats: {ex.Message}";
+        }
+        finally
+        {
+            _statsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task StartJobAsync() => await ExecuteActionAsync(() => JobsClient.StartAsync(JobId), "Job started successfully");
+    private async Task PauseJobAsync() => await ExecuteActionAsync(() => JobsClient.PauseAsync(JobId), "Job paused successfully");
+    private async Task ResumeJobAsync() => await ExecuteActionAsync(() => JobsClient.ResumeAsync(JobId), "Job resumed successfully");
+    private async Task CancelJobAsync() => await ExecuteActionAsync(() => JobsClient.CancelAsync(JobId), "Job cancelled successfully");
+
+    private async Task ExecuteJobAsync()
+    {
+        _actionInProgress = true;
+        _actionError = null;
+        _actionSuccess = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await JobsClient.ExecuteAsync(JobId);
+            _actionSuccess = $"Job execution triggered (Run ID: {result.RunId})";
+            await Task.Delay(2000); // Give backend time to process
+            await LoadJobAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionError = $"Failed to execute job: {ex.Message}";
+        }
+        finally
+        {
+            _actionInProgress = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DryRunAsync()
+    {
+        _actionInProgress = true;
+        _actionError = null;
+        _actionSuccess = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await JobsClient.DryRunAsync(JobId);
+            var statusIcon = result.Success ? "✅" : "❌";
+            var tokenInfo = result.TokensUsed > 0 ? $", {result.TokensUsed} tokens" : "";
+            _actionSuccess = $"{statusIcon} Dry-run completed in {result.DurationMs}ms{tokenInfo}. Output: {Truncate(result.Output ?? "No output", 100)}";
+        }
+        catch (Exception ex)
+        {
+            _actionError = $"Failed to dry-run job: {ex.Message}";
+        }
+        finally
+        {
+            _actionInProgress = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ExecuteActionAsync(Func<Task> action, string successMessage)
+    {
+        _actionInProgress = true;
+        _actionError = null;
+        _actionSuccess = null;
+        StateHasChanged();
+
+        try
+        {
+            await action();
+            _actionSuccess = successMessage;
+            await LoadJobAsync();
+        }
+        catch (Exception ex)
+        {
+            _actionError = $"Action failed: {ex.Message}";
+        }
+        finally
+        {
+            _actionInProgress = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateBack() => Navigation.NavigateTo("/jobs");
+
+    private static string GetStatusBadgeClass(string? status) => status?.ToLowerInvariant() switch
+    {
+        "draft" => "bg-secondary",
+        "active" => "bg-success",
+        "paused" => "bg-warning text-dark",
+        "cancelled" => "bg-danger",
+        "completed" => "bg-info",
+        _ => "bg-light text-dark"
+    };
+
+    private static string GetRunStatusBadgeClass(string? status) => status?.ToLowerInvariant() switch
+    {
+        "completed" => "bg-success",
+        "failed" => "bg-danger",
+        "running" => "bg-primary",
+        _ => "bg-secondary"
+    };
+
+    private static string GetDuration(JobRunDto run)
+    {
+        if (run.CompletedAt is null) return "—";
+        var duration = run.CompletedAt.Value - run.StartedAt;
+        return duration.TotalSeconds < 60
+            ? $"{duration.TotalSeconds:F1}s"
+            : $"{duration.TotalMinutes:F1}m";
+    }
+
+    private static string Truncate(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text)) return "—";
+        return text.Length <= maxLength ? text : $"{text[..maxLength]}…";
+    }
+}

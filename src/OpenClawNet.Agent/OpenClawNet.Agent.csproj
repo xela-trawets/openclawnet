@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenClawNet.Models.Abstractions\OpenClawNet.Models.Abstractions.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.Abstractions\OpenClawNet.Tools.Abstractions.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Skills\OpenClawNet.Skills.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Memory\OpenClawNet.Memory.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Storage\OpenClawNet.Storage.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Mcp.Abstractions\OpenClawNet.Mcp.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Agents.AI" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="*" />
+    <PackageReference Include="Microsoft.Agents.Core" Version="1.4.83" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);MAAI001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenClawNet.UnitTests" />
+  </ItemGroup>
+
+</Project>
+

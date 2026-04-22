@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);MCPEXP002;MAAI001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenClawNet.Mcp.Abstractions\OpenClawNet.Mcp.Abstractions.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Mcp.Core\OpenClawNet.Mcp.Core.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.FileSystem\OpenClawNet.Tools.FileSystem.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="1.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.6" />
+  </ItemGroup>
+
+</Project>

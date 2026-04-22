@@ -1,0 +1,33 @@
+@* Reusable status badge for job/run status values *@
+@if (Status == "active")
+{
+    <span class="badge bg-success">Active</span>
+}
+else if (Status == "running")
+{
+    <span class="badge bg-primary"><span class="spinner-border spinner-border-sm me-1" style="width:.6rem;height:.6rem"></span>Running</span>
+}
+else if (Status == "completed")
+{
+    <span class="badge bg-secondary">Completed</span>
+}
+else if (Status == "failed")
+{
+    <span class="badge bg-danger">Failed</span>
+}
+else if (Status == "cancelled")
+{
+    <span class="badge bg-warning text-dark">Cancelled</span>
+}
+else if (Status == "queued")
+{
+    <span class="badge bg-info text-dark">Queued</span>
+}
+else
+{
+    <span class="badge bg-light text-dark">@Status</span>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Status { get; set; } = "";
+}

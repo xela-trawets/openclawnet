@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Suppress Blazor NavigationException from being treated as unhandled on server-side navigation -->
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenClawNet.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Aspire.Microsoft.Data.Sqlite" Version="13.1.1" />
+    <PackageReference Include="Cronos" Version="0.12.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenClawNet.ServiceDefaults\OpenClawNet.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Storage\OpenClawNet.Storage.csproj" />
+  </ItemGroup>
+</Project>

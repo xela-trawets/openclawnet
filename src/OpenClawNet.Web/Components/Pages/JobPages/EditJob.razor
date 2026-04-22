@@ -1,0 +1,20 @@
+@page "/jobs/{id:guid}/edit"
+@rendermode InteractiveServer
+
+<PageTitle>OpenClaw .NET - Edit Job</PageTitle>
+
+<div class="mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/jobs">Jobs</a></li>
+            <li class="breadcrumb-item"><a href="/jobs/@Id">@Id</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit</li>
+        </ol>
+    </nav>
+</div>
+
+<JobEditor JobId="@Id" />
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+}

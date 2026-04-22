@@ -1,0 +1,241 @@
+@page "/settings/mcp"
+@page "/mcp-tools"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@using OpenClawNet.Web.Components.Pages.McpSettings
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Nav
+@inject ILogger<Index> Logger
+@implements IDisposable
+
+<PageTitle>OpenClaw .NET - MCP Tools</PageTitle>
+
+<h3>MCP Tools</h3>
+<p class="text-muted small">
+    Each MCP server contributes a set of tools the agent can call.
+    Built-in servers ship with OpenClawNet and can be enabled or disabled but not edited.
+    Add user servers via stdio (subprocess) or HTTP (Streamable HTTP).
+</p>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="text-muted">@_servers.Count server(s)</span>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary btn-sm" @onclick="@(() => Nav.NavigateTo("/settings/mcp/new"))">
+            <i class="bi bi-plus-lg me-1"></i> Add MCP Server
+        </button>
+        <button class="btn btn-outline-primary btn-sm" @onclick="@(() => Nav.NavigateTo("/settings/mcp/registry"))">
+            <i class="bi bi-search me-1"></i> Browse Registry
+        </button>
+        <button class="btn btn-outline-primary btn-sm" @onclick="@(() => Nav.NavigateTo("/settings/mcp/suggestions"))">
+            <i class="bi bi-stars me-1"></i> Suggestions
+        </button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="text-muted"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Loading MCP servers…</div>
+}
+else if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger py-2 small">@_error</div>
+}
+else if (_servers.Count == 0)
+{
+    <div class="alert alert-info">No MCP servers configured.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Transport</th>
+                    <th>Status</th>
+                    <th>Tools</th>
+                    <th>Last error</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in _servers)
+                {
+                    <tr data-testid="mcp-row-@s.Name">
+                        <td>
+                            <code>@s.Name</code>
+                            @if (s.IsBuiltIn)
+                            {
+                                <span class="badge bg-secondary ms-2" title="Built-in MCP server">Built-in</span>
+                            }
+                        </td>
+                        <td><span class="badge bg-light text-dark border">@s.Transport</span></td>
+                        <td>
+                            @if (!s.Enabled)
+                            {
+                                <span class="badge bg-warning text-dark">🟡 Disabled</span>
+                            }
+                            else if (!string.IsNullOrEmpty(s.LastError))
+                            {
+                                <span class="badge bg-danger">🔴 Error</span>
+                            }
+                            else if (s.IsRunning)
+                            {
+                                <span class="badge bg-success">🟢 Running</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">⚪ Stopped</span>
+                            }
+                        </td>
+                        <td>@(s.ToolCount > 0 ? s.ToolCount.ToString() : "—")</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(s.LastError))
+                            {
+                                <span class="text-danger small" title="@s.LastError">
+                                    @(s.LastError!.Length > 40 ? s.LastError[..40] + "…" : s.LastError)
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-secondary btn-sm me-1"
+                                    @onclick="() => ToggleEnabledAsync(s)" disabled="@_busy">
+                                @(s.Enabled ? "Disable" : "Enable")
+                            </button>
+                            <button class="btn btn-outline-info btn-sm me-1" @onclick="() => TestAsync(s.Id)" disabled="@_busy">
+                                Test
+                            </button>
+                            @if (!s.IsBuiltIn)
+                            {
+                                <button class="btn btn-outline-primary btn-sm me-1"
+                                        @onclick="@(() => Nav.NavigateTo($"/settings/mcp/{s.Id}"))">
+                                    Edit
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteAsync(s)" disabled="@_busy">
+                                    Delete
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                    @if (_lastTest.TryGetValue(s.Id, out var t))
+                    {
+                        <tr>
+                            <td colspan="6">
+                                @if (t.Ok)
+                                {
+                                    <span class="badge bg-success">✅ @t.Tools.Length tool(s)</span>
+                                    <span class="ms-2 small text-muted">
+                                        @string.Join(", ", t.Tools.Take(8).Select(x => x.Name))
+                                        @(t.Tools.Length > 8 ? " …" : "")
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">❌ @t.Error</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private bool _loading = true;
+    private bool _busy;
+    private string? _error;
+    private List<McpDtos.McpServerListItem> _servers = new();
+    private Dictionary<Guid, McpDtos.TestResult> _lastTest = new();
+    private System.Threading.Timer? _refreshTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+        _loading = false;
+        _refreshTimer = new System.Threading.Timer(async _ =>
+        {
+            try
+            {
+                await LoadAsync();
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex) { Logger.LogDebug(ex, "Background refresh failed."); }
+        }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+    }
+
+    public void Dispose() => _refreshTimer?.Dispose();
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var http = HttpClientFactory.CreateClient("gateway");
+            var result = await http.GetFromJsonAsync<List<McpDtos.McpServerListItem>>("/api/mcp/servers");
+            _servers = result ?? new();
+            _error = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load MCP servers");
+            _error = "Could not reach the Gateway to load MCP servers.";
+        }
+    }
+
+    private async Task ToggleEnabledAsync(McpDtos.McpServerListItem s)
+    {
+        _busy = true;
+        try
+        {
+            var http = HttpClientFactory.CreateClient("gateway");
+            var body = new McpDtos.ServerWriteRequest
+            {
+                Name = s.Name,
+                Transport = s.Transport,
+                Command = s.Command,
+                Args = s.Args.ToList(),
+                Url = s.Url,
+                Enabled = !s.Enabled,
+            };
+            var resp = await http.PutAsJsonAsync($"/api/mcp/servers/{s.Id}", body);
+            if (!resp.IsSuccessStatusCode) _error = $"Toggle failed ({(int)resp.StatusCode}).";
+            await LoadAsync();
+        }
+        finally { _busy = false; }
+    }
+
+    private async Task TestAsync(Guid id)
+    {
+        _busy = true;
+        try
+        {
+            var http = HttpClientFactory.CreateClient("gateway");
+            var resp = await http.PostAsync($"/api/mcp/servers/{id}/test", null);
+            var result = await resp.Content.ReadFromJsonAsync<McpDtos.TestResult>();
+            if (result is not null) _lastTest[id] = result;
+        }
+        catch (Exception ex)
+        {
+            _lastTest[id] = new McpDtos.TestResult(false, Array.Empty<McpDtos.ToolDescriptor>(), ex.Message);
+        }
+        finally { _busy = false; }
+    }
+
+    private async Task DeleteAsync(McpDtos.McpServerListItem s)
+    {
+        _busy = true;
+        try
+        {
+            var http = HttpClientFactory.CreateClient("gateway");
+            var resp = await http.DeleteAsync($"/api/mcp/servers/{s.Id}");
+            if (!resp.IsSuccessStatusCode) _error = $"Delete failed ({(int)resp.StatusCode}).";
+            await LoadAsync();
+        }
+        finally { _busy = false; }
+    }
+}

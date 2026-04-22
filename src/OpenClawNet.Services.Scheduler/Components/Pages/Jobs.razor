@@ -1,0 +1,147 @@
+@page "/"
+@using OpenClawNet.Services.Scheduler.Endpoints
+@rendermode InteractiveServer
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Nav
+
+<PageTitle>Jobs — OpenClawNet Scheduler</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="bi bi-list-check me-2"></i>Scheduled Jobs</h4>
+    <div class="d-flex gap-2 align-items-center">
+        <span class="badge bg-secondary">Active: @(_jobs?.Count(j => j.Status == "active") ?? 0)</span>
+        <span class="badge bg-info text-dark">Running: @_running</span>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <div class="mt-2 text-muted small">Loading jobs…</div>
+    </div>
+}
+else if (_error is not null)
+{
+    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>@_error</div>
+}
+else if (_jobs is null || _jobs.Count == 0)
+{
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>No jobs found. Create a scheduled job via the API or chat.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Agent</th>
+                    <th>Next Run</th>
+                    <th>Last Run</th>
+                    <th>Recurring</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var job in _jobs)
+                {
+                    <tr style="cursor:pointer" @onclick="() => ViewJob(job.Id)">
+                        <td class="fw-semibold">@job.Name</td>
+                        <td><StatusBadge Status="@job.Status" /></td>
+                        <td class="small">
+                            @if (!string.IsNullOrEmpty(job.AgentProfileName))
+                            {
+                                <span class="badge bg-primary">@job.AgentProfileName</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">default</span>
+                            }
+                        </td>
+                        <td class="text-muted small">@FormatDateTime(job.NextRunAt)</td>
+                        <td class="text-muted small">@FormatDateTime(job.LastRunAt)</td>
+                        <td>
+                            @if (job.IsRecurring)
+                            {
+                                <span class="badge bg-info text-dark"><i class="bi bi-repeat me-1"></i>@job.CronExpression</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td @onclick:stopPropagation>
+                            <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => TriggerJob(job.Id)"
+                                    disabled="@(job.Status == "cancelled")">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => CancelJob(job.Id)"
+                                    disabled="@(job.Status is "cancelled" or "completed")">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<JobSummaryDto>? _jobs;
+    private bool _loading = true;
+    private string? _error;
+    private int _running;
+    private System.Threading.Timer? _autoRefresh;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh();
+        _autoRefresh = new System.Threading.Timer(_ => InvokeAsync(async () =>
+        {
+            await Refresh();
+            StateHasChanged();
+        }), null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+    }
+
+    private async Task Refresh()
+    {
+        _loading = _jobs is null;
+        _error = null;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("scheduler-self");
+            _jobs = await client.GetFromJsonAsync<List<JobSummaryDto>>("/api/scheduler/jobs");
+
+            var runningResp = await client.GetFromJsonAsync<RunningCountDto>("/api/scheduler/running");
+            _running = runningResp?.Count ?? 0;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private void ViewJob(Guid id) => Nav.NavigateTo($"/jobs/{id}");
+
+    private async Task TriggerJob(Guid id)
+    {
+        var client = HttpClientFactory.CreateClient("scheduler-self");
+        await client.PostAsync($"/api/scheduler/jobs/{id}/trigger", null);
+        await Refresh();
+    }
+
+    private async Task CancelJob(Guid id)
+    {
+        var client = HttpClientFactory.CreateClient("scheduler-self");
+        await client.PostAsync($"/api/scheduler/jobs/{id}/cancel", null);
+        await Refresh();
+    }
+
+    private static string FormatDateTime(DateTime? dt) => dt.HasValue ? dt.Value.ToLocalTime().ToString("g") : "—";
+
+    private sealed record RunningCountDto(int Count);
+
+    public void Dispose() => _autoRefresh?.Dispose();
+}

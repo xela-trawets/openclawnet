@@ -1,0 +1,622 @@
+@page "/"
+@using System.IO
+@using System.Text.Json
+@using OpenClawNet.Web.Components
+@inject IConfiguration Configuration
+@inject IHttpClientFactory HttpClientFactory
+@rendermode InteractiveServer
+@implements IAsyncDisposable
+
+<PageTitle>OpenClaw .NET - Chat</PageTitle>
+
+<div class="chat-layout d-flex gap-3" style="height: calc(100vh - 80px);">
+
+    @* ── Sessions panel ── *@
+    <div class="sessions-panel border rounded p-2 d-flex flex-column" style="width:210px;min-width:180px;overflow-y:auto;">
+        <button class="btn btn-primary btn-sm mb-2 w-100" @onclick="NewSession" disabled="@_isStreaming">
+            + New Chat
+        </button>
+        @if (_loadingSessions)
+        {
+            <div class="text-muted small text-center py-2">Loading…</div>
+        }
+        else
+        {
+            @foreach (var s in _sessions)
+            {
+                <div class="session-item rounded px-2 py-1 mb-1 @(s.Id == _currentSession?.Id ? "bg-primary text-white" : "bg-light")"
+                     style="cursor:pointer" @onclick="() => SwitchSession(s)">
+                    <div class="small fw-semibold text-truncate" title="@s.Title">@s.Title</div>
+                    <div class="small opacity-75">@s.UpdatedAt.ToLocalTime().ToString("MMM d, HH:mm")</div>
+                </div>
+            }
+        }
+    </div>
+
+    @* ── Main chat area ── *@
+    <div class="flex-grow-1 d-flex flex-column overflow-hidden">
+
+        @* Session title / rename bar *@
+        @if (_currentSession is not null)
+        {
+            <div class="d-flex align-items-center gap-2 mb-2">
+                @if (_isRenaming)
+                {
+                    <input class="form-control form-control-sm" style="max-width:300px"
+                           @bind="_renameTitle" @onkeydown="HandleRenameKey" />
+                    <button class="btn btn-sm btn-success" @onclick="CommitRename">✓</button>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="CancelRename">✕</button>
+                }
+                else
+                {
+                    <span class="fw-semibold">@_currentSession.Title</span>
+                    <button class="btn btn-sm btn-outline-secondary py-0" @onclick="StartRename" title="Rename session">✏️</button>
+                }
+            </div>
+        }
+
+        @* Agent Profile Selector *@
+        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <select class="form-select form-select-sm" style="max-width:220px" @bind="_selectedProfileName" disabled="@_isStreaming">
+                @foreach (var p in _agentProfiles)
+                {
+                    <option value="@p.Name">@(p.DisplayName ?? p.Name) @(p.IsDefault ? "★" : "")</option>
+                }
+            </select>
+            @{
+                var selectedProfile = _agentProfiles.FirstOrDefault(p => p.Name == _selectedProfileName);
+                var providerName = selectedProfile?.Provider;
+                ProviderInfoDto? providerInfo = null;
+                if (providerName is not null) _providerLookup.TryGetValue(providerName, out providerInfo);
+            }
+            @if (providerInfo is not null)
+            {
+                <span class="badge bg-light text-dark border small" style="font-size:0.7rem">
+                    @providerInfo.DisplayName
+                    @if (!string.IsNullOrEmpty(providerInfo.Model))
+                    {
+                        <span class="text-muted"> · @providerInfo.Model</span>
+                    }
+                    else if (!string.IsNullOrEmpty(providerInfo.DeploymentName))
+                    {
+                        <span class="text-muted"> · @providerInfo.DeploymentName</span>
+                    }
+                </span>
+            }
+        </div>
+
+        @* Messages *@
+        <div class="flex-grow-1 overflow-auto mb-3 p-3 border rounded bg-light"
+             @ref="_messagesContainer" id="messages-container">
+            @if (!string.IsNullOrEmpty(_connectionError))
+            {
+                <div class="alert alert-warning mb-2">
+                    ⚠️ @_connectionError
+                </div>
+            }
+            @if (_messages.Count == 0 && string.IsNullOrEmpty(_connectionError))
+            {
+                <div class="text-center text-muted mt-5">
+                    <h4>🦞 Welcome to OpenClaw .NET</h4>
+                    <p>Start a conversation with your AI assistant.</p>
+                </div>
+            }
+
+            @foreach (var msg in _messages)
+            {
+                <div class="mb-3 @(msg.Role == "user" ? "text-end" : "")">
+                    <div class="d-inline-block p-2 rounded @(msg.Role == "user" ? "bg-primary text-white" : "bg-white border")"
+                         style="max-width:80%;word-wrap:break-word;white-space:pre-wrap;">
+                        @msg.Content
+                    </div>
+                    <div class="small text-muted mt-1">@msg.Role · @msg.Timestamp.ToString("HH:mm")</div>
+                </div>
+            }
+
+            @* Wave 4 PR-1 (Lambert): inline approval card render slot.
+               PendingApproval stays null until Dallas's PR-2 wires the NDJSON event
+               into PendingApprovalRequest. Card renders inside the chat thread,
+               directly under the most recent message and above the streaming bubble. *@
+            @if (PendingApproval is not null)
+            {
+                <ToolApprovalCard ToolName="@PendingApproval.ToolName"
+                                  ToolDescription="@PendingApproval.ToolDescription"
+                                  ToolArgsJson="@PendingApproval.ToolArgsJson"
+                                  OnApprove="HandleToolApprove"
+                                  OnDeny="HandleToolDeny" />
+            }
+
+            @if (_isStreaming)
+            {
+                <div class="mb-3" @key="@("streaming")">
+                    <div class="d-inline-block p-2 rounded bg-white border" style="max-width:80%;white-space:pre-wrap">
+                        @if (!string.IsNullOrEmpty(_pendingApprovalTool))
+                        {
+                            <div class="mb-1">
+                                <span class="badge bg-warning text-dark">🔐 @_pendingApprovalTool</span>
+                                <span class="text-muted small"> requesting file access…</span>
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(_currentToolName))
+                        {
+                            <div class="mb-1">
+                                <span class="badge bg-info">🔧 @_currentToolName</span>
+                                <span class="text-muted small"> executing…</span>
+                            </div>
+                        }
+                        @if (string.IsNullOrEmpty(_streamingContent) && string.IsNullOrEmpty(_currentToolName) && string.IsNullOrEmpty(_pendingApprovalTool))
+                        {
+                            <span class="text-muted">Thinking…</span>
+                        }
+                        else if (!string.IsNullOrEmpty(_streamingContent))
+                        {
+                            @_streamingContent
+                        }
+                    </div>
+                </div>
+            }
+
+            @* Wave 5 PR-B (Vasquez): hidden sentinels for E2E waits.
+               One span per tool_complete event, one span per finished assistant turn.
+               `hidden` attribute keeps them out of the visible UI but in the DOM,
+               so Playwright's WaitForAsync / Nth(i) selectors are deterministic. *@
+            @for (var i = 0; i < _toolCompleteCount; i++)
+            {
+                <span data-testid="tool-result" hidden></span>
+            }
+            @for (var i = 0; i < _assistantCompleteCount; i++)
+            {
+                <span data-testid="assistant-message-complete" hidden></span>
+            }
+        </div>
+
+        @* Input *@
+        <div class="d-flex gap-2">
+            <textarea class="form-control" rows="2" placeholder="Type your message…"
+                      data-testid="chat-input"
+                      @bind="_userInput" @bind:event="oninput"
+                      @onkeydown="HandleKeyDown"
+                      disabled="@_isStreaming"></textarea>
+            <button class="btn btn-primary px-4" @onclick="SendMessage"
+                    data-testid="chat-send"
+                    disabled="@(_isStreaming || string.IsNullOrWhiteSpace(_userInput))">
+                Send
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private static readonly JsonSerializerOptions JsonOpts = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    [SupplyParameterFromQuery(Name = "sessionId")]
+    public string? SessionIdParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "profile")]
+    public string? ProfileParam { get; set; }
+
+    private CancellationTokenSource? _streamCts;
+    private long _lastRenderTick;
+    private readonly List<ChatDisplayMessage> _messages = [];
+    private string _userInput = string.Empty;
+    private string _streamingContent = string.Empty;
+    private string _currentToolName = string.Empty;
+    private string _pendingApprovalTool = string.Empty;
+
+    // Wave 5 PR-B (Vasquez): hidden sentinels Playwright can WaitForAsync on.
+    // _toolCompleteCount is bumped on every "tool_complete" NDJSON event.
+    // _assistantCompleteCount is bumped each time streaming flips to !_isStreaming
+    // after producing a non-empty assistant turn.
+    private int _toolCompleteCount;
+    private int _assistantCompleteCount;
+
+    // Wave 4 PR-1 (Lambert): inline approval card state.
+    // PendingApproval is set when an NDJSON "tool_approval" event arrives carrying
+    // a request id. Stays null in PR-1 — Dallas wires the producer side in PR-2.
+    private PendingApprovalRequest? PendingApproval;
+
+    private sealed record PendingApprovalRequest(
+        string RequestId,
+        string ToolName,
+        string? ToolDescription,
+        string? ToolArgsJson);
+
+    private Task HandleToolApprove(bool rememberForSession)
+        => SubmitToolDecisionAsync(approved: true, rememberForSession: rememberForSession);
+
+    private Task HandleToolDeny()
+        => SubmitToolDecisionAsync(approved: false, rememberForSession: false);
+
+    // Wave 4 PR-2 (Dallas) contract:
+    //   POST /api/chat/tool-approval
+    //   { "requestId": "guid", "approved": bool, "rememberForSession": bool }
+    private async Task SubmitToolDecisionAsync(bool approved, bool rememberForSession)
+    {
+        var pending = PendingApproval;
+        PendingApproval = null;
+        _pendingApprovalTool = string.Empty;
+        await InvokeAsync(StateHasChanged);
+
+        if (pending is null || string.IsNullOrEmpty(pending.RequestId))
+        {
+            return;
+        }
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var payload = new
+            {
+                requestId = pending.RequestId,
+                approved,
+                rememberForSession
+            };
+            await client.PostAsJsonAsync("api/chat/tool-approval", payload);
+        }
+        catch (Exception ex)
+        {
+            _connectionError = $"Failed to submit tool decision: {ex.Message}";
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    private string? _connectionError;
+    private bool _isStreaming;
+    private bool _loadingSessions;
+    private SessionDto? _currentSession;
+    private List<SessionDto> _sessions = [];
+    private ElementReference _messagesContainer;
+    private string _gatewayUrl = string.Empty;
+
+    // Rename
+    private bool _isRenaming;
+    private string _renameTitle = string.Empty;
+
+    // Agent profiles
+    private List<AgentProfileDto> _agentProfiles = [];
+    private Dictionary<string, ProviderInfoDto> _providerLookup = new();
+    private string _selectedProfileName = "default";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _gatewayUrl = ResolveGatewayUrl();
+        await Task.WhenAll(LoadSessionsAsync(), LoadAgentProfilesAsync(), LoadProviderInfoAsync());
+
+        // Honour ?profile={name} from query — overrides default profile selection.
+        if (!string.IsNullOrWhiteSpace(ProfileParam) &&
+            _agentProfiles.Any(p => p.Name == ProfileParam))
+        {
+            _selectedProfileName = ProfileParam;
+        }
+
+        // 1. Honour an explicit ?sessionId=... query parameter
+        if (!string.IsNullOrWhiteSpace(SessionIdParam) && Guid.TryParse(SessionIdParam, out var sid))
+        {
+            var existing = _sessions.FirstOrDefault(s => s.Id == sid);
+            if (existing is not null)
+            {
+                await SwitchSession(existing);
+                return;
+            }
+        }
+
+        // 2. Resume the most-recently-updated session when one exists
+        if (_sessions.Count > 0)
+        {
+            await SwitchSession(_sessions[0]);
+            return;
+        }
+
+        // 3. No sessions at all — create a fresh one
+        await NewSession();
+    }
+
+    // ── Session management ────────────────────────────────────────────────
+
+    private async Task LoadSessionsAsync()
+    {
+        _loadingSessions = true;
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var result = await client.GetFromJsonAsync<List<SessionDto>>("api/sessions");
+            _sessions = result ?? [];
+        }
+        catch { _sessions = []; }
+        finally { _loadingSessions = false; }
+    }
+
+    private async Task LoadAgentProfilesAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var result = await client.GetFromJsonAsync<List<AgentProfileDto>>("api/agent-profiles?kind=Standard");
+            _agentProfiles = result ?? [];
+            var def = _agentProfiles.FirstOrDefault(p => p.IsDefault);
+            if (def is not null) _selectedProfileName = def.Name;
+        }
+        catch { _agentProfiles = [new("default", "Default Agent", null, true)]; }
+    }
+
+    private async Task LoadProviderInfoAsync()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var result = await client.GetFromJsonAsync<List<ProviderInfoDto>>("api/model-providers");
+            _providerLookup = (result ?? []).ToDictionary(p => p.Name, p => p);
+        }
+        catch { _providerLookup = new(); }
+    }
+
+    private async Task NewSession()
+    {
+        _messages.Clear();
+        _streamingContent = string.Empty;
+        _currentToolName = string.Empty;
+        _pendingApprovalTool = string.Empty;
+        _connectionError = null;
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var resp = await client.PostAsJsonAsync("api/sessions", new { title = (string?)null });
+            if (resp.IsSuccessStatusCode)
+            {
+                var dto = await resp.Content.ReadFromJsonAsync<SessionDto>();
+                if (dto is not null)
+                {
+                    _sessions.Insert(0, dto);
+                    _currentSession = dto;
+                }
+            }
+        }
+        catch
+        {
+            // Fallback: local-only session so the UI still works
+            _currentSession = new SessionDto(Guid.NewGuid(), "New Chat", DateTime.UtcNow, DateTime.UtcNow);
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task SwitchSession(SessionDto s)
+    {
+        _currentSession = s;
+        _messages.Clear();
+        _streamingContent = string.Empty;
+
+        // Load existing messages
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var msgs = await client.GetFromJsonAsync<List<MessageDto>>($"api/sessions/{s.Id}/messages");
+            if (msgs is not null)
+            {
+                foreach (var m in msgs)
+                    _messages.Add(new ChatDisplayMessage(m.Role, m.Content, m.CreatedAt.ToLocalTime()));
+            }
+        }
+        catch { /* ignore */ }
+
+        StateHasChanged();
+    }
+
+    // ── Rename ────────────────────────────────────────────────────────────
+
+    private void StartRename()
+    {
+        _isRenaming = true;
+        _renameTitle = _currentSession?.Title ?? string.Empty;
+    }
+
+    private void CancelRename() { _isRenaming = false; _renameTitle = string.Empty; }
+
+    private async Task HandleRenameKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await CommitRename();
+        else if (e.Key == "Escape") CancelRename();
+    }
+
+    private async Task CommitRename()
+    {
+        if (_currentSession is null || string.IsNullOrWhiteSpace(_renameTitle)) { CancelRename(); return; }
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            await client.PatchAsJsonAsync($"api/sessions/{_currentSession.Id}/title", new { title = _renameTitle });
+            var updated = _currentSession with { Title = _renameTitle };
+            var idx = _sessions.FindIndex(s => s.Id == _currentSession.Id);
+            if (idx >= 0) _sessions[idx] = updated;
+            _currentSession = updated;
+        }
+        catch { /* ignore */ }
+        CancelRename();
+    }
+
+    // ── Chat (HTTP NDJSON streaming) ──────────────────────────────────────
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(_userInput) || _currentSession is null) return;
+
+        var message = _userInput.Trim();
+        _userInput = string.Empty;
+
+        _messages.Add(new ChatDisplayMessage("user", message, DateTime.Now));
+        _isStreaming = true;
+        _streamingContent = string.Empty;
+        _connectionError = null;
+        StateHasChanged();
+
+        _streamCts = new CancellationTokenSource();
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("gateway");
+            var payload = new { sessionId = _currentSession.Id, message, model = (string?)null, agentProfileName = _selectedProfileName };
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, "api/chat/stream");
+            request.Content = JsonContent.Create(payload);
+            request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/x-ndjson"));
+
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, _streamCts.Token);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync(_streamCts.Token);
+                _messages.Add(new ChatDisplayMessage("assistant",
+                    $"⚠️ Server error ({(int)response.StatusCode}): {errorBody}", DateTime.Now));
+                return;
+            }
+
+            using var stream = await response.Content.ReadAsStreamAsync(_streamCts.Token);
+            using var reader = new StreamReader(stream);
+
+            while (!reader.EndOfStream && !_streamCts.Token.IsCancellationRequested)
+            {
+                var line = await reader.ReadLineAsync(_streamCts.Token);
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                ChatStreamEvent? evt;
+                try
+                {
+                    evt = JsonSerializer.Deserialize<ChatStreamEvent>(line, JsonOpts);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (evt is null) continue;
+
+                switch (evt.Type)
+                {
+                    case "content":
+                        _streamingContent += evt.Content;
+                        // Throttle UI updates to prevent Blazor Server SignalR flooding
+                        var now = Environment.TickCount64;
+                        if (now - _lastRenderTick > 150) // ~7 FPS — smooth for text, light on SignalR
+                        {
+                            _lastRenderTick = now;
+                            await InvokeAsync(StateHasChanged);
+                        }
+                        break;
+                    case "tool_approval":
+                        // Wave 4 PR-2 (Dallas) NDJSON shape:
+                        //   { "type":"tool_approval", "requestId":"guid", "toolName":"…",
+                        //     "toolDescription":"…", "toolArgsJson":"…" }
+                        _pendingApprovalTool = evt.ToolName ?? evt.Content ?? string.Empty;
+                        if (evt.RequestId is { } reqId && reqId != Guid.Empty)
+                        {
+                            PendingApproval = new PendingApprovalRequest(
+                                reqId.ToString(),
+                                evt.ToolName ?? string.Empty,
+                                evt.ToolDescription,
+                                evt.ToolArgsJson);
+                        }
+                        await InvokeAsync(StateHasChanged);
+                        break;
+                    case "tool_start":
+                        _pendingApprovalTool = string.Empty;
+                        _currentToolName = evt.Content ?? evt.ToolName ?? string.Empty;
+                        await InvokeAsync(StateHasChanged);
+                        break;
+                    case "tool_complete":
+                        _currentToolName = string.Empty;
+                        _toolCompleteCount++;
+                        await InvokeAsync(StateHasChanged);
+                        break;
+                    case "error":
+                        if (string.IsNullOrEmpty(_streamingContent))
+                            _streamingContent = $"⚠️ {evt.Content}";
+                        goto doneStreaming;
+                    case "complete":
+                        goto doneStreaming;
+                }
+            }
+
+            doneStreaming:
+            // Add final message and stop streaming in a single render to avoid flash
+            _messages.Add(new ChatDisplayMessage("assistant", _streamingContent, DateTime.Now));
+            var hadContent = !string.IsNullOrWhiteSpace(_streamingContent);
+            _isStreaming = false;
+            _streamingContent = string.Empty;
+            if (hadContent)
+            {
+                _assistantCompleteCount++;
+            }
+            await InvokeAsync(StateHasChanged);
+
+            // Refresh session list so the updated title/timestamp appears
+            await LoadSessionsAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            if (!string.IsNullOrEmpty(_streamingContent))
+                _messages.Add(new ChatDisplayMessage("assistant", _streamingContent, DateTime.Now));
+        }
+        catch (HttpRequestException ex)
+        {
+            _connectionError = $"Cannot reach the Gateway service: {ex.Message}";
+            _messages.Add(new ChatDisplayMessage("assistant",
+                "⚠️ Not connected to the Gateway. Please ensure the Gateway service is running.", DateTime.Now));
+        }
+        catch (Exception ex)
+        {
+            _messages.Add(new ChatDisplayMessage("assistant", $"⚠️ Error: {ex.Message}", DateTime.Now));
+        }
+        finally
+        {
+            _isStreaming = false;
+            _streamingContent = string.Empty;
+            _currentToolName = string.Empty;
+            _pendingApprovalTool = string.Empty;
+            _streamCts?.Dispose();
+            _streamCts = null;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+            await SendMessage();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _streamCts?.Cancel();
+        _streamCts?.Dispose();
+    }
+
+    private string ResolveGatewayUrl()
+    {
+        var url = Configuration["Services:gateway:https:0"]
+            ?? Configuration["Services:gateway:http:0"]
+            ?? Configuration["OpenClawNet:GatewayBaseUrl"]
+            ?? "https://localhost:7100";
+        return url.TrimEnd('/');
+    }
+
+    // ── Local records ──────────────────────────────────────────────────────
+    private sealed record ChatDisplayMessage(string Role, string Content, DateTime Timestamp);
+    private sealed record SessionDto(Guid Id, string Title, DateTime CreatedAt, DateTime UpdatedAt);
+    private sealed record AgentProfileDto(string Name, string? DisplayName, string? Provider, bool IsDefault);
+    private sealed record ProviderInfoDto(string Name, string ProviderType, string? DisplayName, string? Model, string? DeploymentName);
+    private sealed record MessageDto(Guid Id, string Role, string Content, DateTime CreatedAt);
+    private sealed record ChatStreamEvent
+    {
+        public string Type { get; init; } = string.Empty;
+        public string? Content { get; init; }
+        public string? ToolName { get; init; }
+        public Guid SessionId { get; init; }
+        // Wave 4 PR-2 (Dallas): tool_approval event carries these.
+        public Guid? RequestId { get; init; }
+        public string? ToolDescription { get; init; }
+        public string? ToolArgsJson { get; init; }
+    }
+}

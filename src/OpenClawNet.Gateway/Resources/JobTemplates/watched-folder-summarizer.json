@@ -1,0 +1,19 @@
+{
+  "id": "watched-folder-summarizer",
+  "name": "Watched folder → Markdown → Summary",
+  "description": "Every 5 minutes, scan a folder for documents, convert each to clean Markdown, and write a summary next to the original file as <name>.summary.md.",
+  "category": "files",
+  "docsUrl": "https://github.com/elbruno/openclawnet-plan/blob/main/docs/demos/tools/01-watched-folder-summarizer/README.md",
+  "prerequisites": [
+    "The folder to watch exists (default c:\\temp\\sampleDocs).",
+    "An agent profile with file_system, markdown_convert, and the model you want to use is configured."
+  ],
+  "requiredSecrets": [],
+  "requiredTools": ["file_system", "markdown_convert"],
+  "defaultJob": {
+    "name": "Watched folder summariser",
+    "prompt": "List every file in c:\\temp\\sampleDocs whose name does NOT end with .summary.md. For each one: 1) call markdown_convert on it (or read+pass the content if it is already markdown); 2) write a concise 5-bullet summary to <original>.summary.md using file_system.write; 3) skip files that already have a .summary.md sibling. Report at the end how many files were processed and how many were skipped.",
+    "cronExpression": "*/5 * * * *",
+    "allowConcurrentRuns": false
+  }
+}

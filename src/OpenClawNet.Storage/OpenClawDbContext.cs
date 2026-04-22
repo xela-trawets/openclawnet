@@ -1,0 +1,140 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using OpenClawNet.Storage.Entities;
+
+namespace OpenClawNet.Storage;
+
+public class OpenClawDbContext : DbContext
+{
+    public OpenClawDbContext(DbContextOptions<OpenClawDbContext> options) : base(options) { }
+    
+    public DbSet<ChatSession> Sessions => Set<ChatSession>();
+    public DbSet<ChatMessageEntity> Messages => Set<ChatMessageEntity>();
+    public DbSet<SessionSummary> Summaries => Set<SessionSummary>();
+    public DbSet<ToolCallRecord> ToolCalls => Set<ToolCallRecord>();
+    public DbSet<ScheduledJob> Jobs => Set<ScheduledJob>();
+    public DbSet<JobRun> JobRuns => Set<JobRun>();
+    public DbSet<JobRunEvent> JobRunEvents => Set<JobRunEvent>();
+    public DbSet<ProviderSetting> ProviderSettings => Set<ProviderSetting>();
+    public DbSet<AgentProfileEntity> AgentProfiles => Set<AgentProfileEntity>();
+    public DbSet<ModelProviderDefinition> ModelProviders => Set<ModelProviderDefinition>();
+    public DbSet<McpServerDefinitionEntity> McpServerDefinitions => Set<McpServerDefinitionEntity>();
+    public DbSet<McpToolOverrideEntity> McpToolOverrides => Set<McpToolOverrideEntity>();
+    public DbSet<SchemaVersionEntity> SchemaVersions => Set<SchemaVersionEntity>();
+    public DbSet<ToolTestRecord> ToolTestRecords => Set<ToolTestRecord>();
+    public DbSet<SecretEntity> Secrets => Set<SecretEntity>();
+    
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ChatSession>(e =>
+        {
+            e.HasKey(s => s.Id);
+            e.HasMany(s => s.Messages).WithOne(m => m.Session).HasForeignKey(m => m.SessionId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(s => s.Summaries).WithOne(s => s.Session).HasForeignKey(s => s.SessionId).OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        modelBuilder.Entity<ChatMessageEntity>(e =>
+        {
+            e.HasKey(m => m.Id);
+            e.HasIndex(m => new { m.SessionId, m.OrderIndex });
+        });
+        
+        modelBuilder.Entity<SessionSummary>(e =>
+        {
+            e.HasKey(s => s.Id);
+        });
+        
+        modelBuilder.Entity<ToolCallRecord>(e =>
+        {
+            e.HasKey(t => t.Id);
+            e.HasIndex(t => t.SessionId);
+        });
+        
+        modelBuilder.Entity<ScheduledJob>(e =>
+        {
+            e.ToTable("Jobs");
+            e.HasKey(j => j.Id);
+            e.Property(j => j.Status)
+                .HasConversion(
+                    v => v.ToString().ToLowerInvariant(),
+                    v => Enum.Parse<JobStatus>(v, ignoreCase: true))
+                .HasDefaultValue(JobStatus.Draft);
+            e.Property(j => j.TriggerType)
+                .HasConversion(
+                    v => v.ToString().ToLowerInvariant(),
+                    v => Enum.Parse<TriggerType>(v, ignoreCase: true))
+                .HasDefaultValue(TriggerType.Manual);
+            e.HasMany(j => j.Runs).WithOne(r => r.Job).HasForeignKey(r => r.JobId).OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        modelBuilder.Entity<JobRun>(e =>
+        {
+            e.ToTable("JobRuns");
+            e.HasKey(r => r.Id);
+        });
+
+        modelBuilder.Entity<JobRunEvent>(e =>
+        {
+            e.ToTable("JobRunEvents");
+            e.HasKey(x => x.Id);
+            e.HasOne(x => x.Run)
+                .WithMany()
+                .HasForeignKey(x => x.JobRunId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => new { x.JobRunId, x.Sequence });
+        });
+        
+        modelBuilder.Entity<ProviderSetting>(e =>
+        {
+            e.HasKey(s => s.Key);
+        });
+
+        modelBuilder.Entity<AgentProfileEntity>(e =>
+        {
+            e.ToTable("AgentProfiles");
+            e.HasKey(x => x.Name);
+            e.Property(x => x.Kind)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => Enum.Parse<OpenClawNet.Models.Abstractions.ProfileKind>(v, ignoreCase: true))
+                .HasDefaultValue(OpenClawNet.Models.Abstractions.ProfileKind.Standard);
+        });
+
+        modelBuilder.Entity<ModelProviderDefinition>(e =>
+        {
+            e.ToTable("ModelProviders");
+            e.HasKey(x => x.Name);
+        });
+
+        modelBuilder.Entity<McpServerDefinitionEntity>(e =>
+        {
+            e.ToTable("McpServerDefinitions");
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.Name).IsUnique();
+        });
+
+        modelBuilder.Entity<McpToolOverrideEntity>(e =>
+        {
+            e.ToTable("McpToolOverrides");
+            e.HasKey(x => new { x.ServerId, x.ToolName });
+        });
+
+        modelBuilder.Entity<SchemaVersionEntity>(e =>
+        {
+            e.ToTable("SchemaVersions");
+            e.HasKey(x => x.Key);
+        });
+
+        modelBuilder.Entity<ToolTestRecord>(e =>
+        {
+            e.ToTable("ToolTestRecords");
+            e.HasKey(x => x.Name);
+        });
+
+        modelBuilder.Entity<SecretEntity>(e =>
+        {
+            e.ToTable("Secrets");
+            e.HasKey(x => x.Name);
+        });
+    }
+}

@@ -1,0 +1,21 @@
+@inherits LayoutComponentBase
+
+<div class="d-flex flex-column vh-100">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+        <a class="navbar-brand fw-bold" href="/">
+            <i class="bi bi-clock-history me-2"></i>OpenClawNet Scheduler
+        </a>
+        <div class="navbar-nav ms-auto">
+            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All"><i class="bi bi-list-ul me-1"></i>Jobs</NavLink>
+            <NavLink class="nav-link" href="/settings"><i class="bi bi-gear me-1"></i>Settings</NavLink>
+        </div>
+    </nav>
+
+    <main class="flex-fill p-4">
+        @Body
+    </main>
+
+    <footer class="text-center text-muted small py-2 border-top">
+        OpenClawNet Scheduler &copy; @DateTime.Now.Year
+    </footer>
+</div>

@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.OpenApi.Generated</InterceptorsNamespaces>
+    <UserSecretsId>c15754a6-dc90-4a2a-aecb-1233d1a54fe1</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenClawNet.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="skills/**" CopyToOutputDirectory="Always" />
+    <Content Include="..\..\docs\mcp-suggestions.yaml" Link="docs\mcp-suggestions.yaml" CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="Resources\JobTemplates\*.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Aspire.Microsoft.Data.Sqlite" Version="13.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="YamlDotNet" Version="16.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenClawNet.ServiceDefaults\OpenClawNet.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Agent\OpenClawNet.Agent.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Models.Abstractions\OpenClawNet.Models.Abstractions.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Models.Ollama\OpenClawNet.Models.Ollama.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Models.FoundryLocal\OpenClawNet.Models.FoundryLocal.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Models.AzureOpenAI\OpenClawNet.Models.AzureOpenAI.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Models.Foundry\OpenClawNet.Models.Foundry.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.Abstractions\OpenClawNet.Tools.Abstractions.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.Core\OpenClawNet.Tools.Core.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.FileSystem\OpenClawNet.Tools.FileSystem.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.Shell\OpenClawNet.Tools.Shell.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.Web\OpenClawNet.Tools.Web.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.Scheduler\OpenClawNet.Tools.Scheduler.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.Browser\OpenClawNet.Tools.Browser.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.MarkItDown\OpenClawNet.Tools.MarkItDown.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.Calculator\OpenClawNet.Tools.Calculator.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.YouTube\OpenClawNet.Tools.YouTube.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.Text2Image\OpenClawNet.Tools.Text2Image.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.Embeddings\OpenClawNet.Tools.Embeddings.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.TextToSpeech\OpenClawNet.Tools.TextToSpeech.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.GitHub\OpenClawNet.Tools.GitHub.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.ImageEdit\OpenClawNet.Tools.ImageEdit.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Tools.HtmlQuery\OpenClawNet.Tools.HtmlQuery.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Skills\OpenClawNet.Skills.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Memory\OpenClawNet.Memory.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Storage\OpenClawNet.Storage.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Models.GitHubCopilot\OpenClawNet.Models.GitHubCopilot.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Mcp.Abstractions\OpenClawNet.Mcp.Abstractions.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Mcp.Core\OpenClawNet.Mcp.Core.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Mcp.Web\OpenClawNet.Mcp.Web.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Mcp.Shell\OpenClawNet.Mcp.Shell.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Mcp.Browser\OpenClawNet.Mcp.Browser.csproj" />
+    <ProjectReference Include="..\OpenClawNet.Mcp.FileSystem\OpenClawNet.Mcp.FileSystem.csproj" />
+  </ItemGroup>
+
+</Project>

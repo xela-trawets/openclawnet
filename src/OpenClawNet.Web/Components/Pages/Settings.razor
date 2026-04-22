@@ -1,0 +1,151 @@
+@page "/settings"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@inject IHttpClientFactory HttpClientFactory
+@inject ILogger<Settings> Logger
+
+<PageTitle>OpenClaw .NET - Settings</PageTitle>
+
+<h3><i class="bi bi-gear me-2"></i>Settings</h3>
+
+@if (_loading)
+{
+    <div class="text-muted"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Loading settings…</div>
+}
+else
+{
+<div class="row">
+    <div class="col-md-8">
+
+        @* ── Scheduler Settings Card ─────────────────────────── *@
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Scheduler Settings</span>
+                @if (_schedulerSaveSuccess.HasValue)
+                {
+                    <span class="badge @(_schedulerSaveSuccess.Value ? "bg-success" : "bg-danger")">
+                        @(_schedulerSaveSuccess.Value ? "✔ Saved" : "✘ Error")
+                    </span>
+                }
+            </div>
+            <div class="card-body">
+                @if (_schedulerError is not null)
+                {
+                    <div class="alert alert-warning py-2 small">@_schedulerError</div>
+                }
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Max Concurrent Jobs</label>
+                    <input type="number" class="form-control" min="1" max="20"
+                           @bind="_schedulerSettings.MaxConcurrentJobs" />
+                    <div class="form-text">How many jobs can run in parallel (1–20).</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Job Timeout (seconds)</label>
+                    <input type="number" class="form-control" min="10" max="3600"
+                           @bind="_schedulerSettings.JobTimeoutSeconds" />
+                    <div class="form-text">Force-cancel a job after this many seconds (10–3600).</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Poll Interval (seconds)</label>
+                    <input type="number" class="form-control" min="5" max="3600"
+                           @bind="_schedulerSettings.PollIntervalSeconds" />
+                    <div class="form-text">How often to check for due jobs (5–3600).</div>
+                </div>
+                <button class="btn btn-primary" @onclick="SaveSchedulerSettings" disabled="@_schedulerSaving">
+                    @if (_schedulerSaving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    Save Scheduler Settings
+                </button>
+                <a class="btn btn-outline-secondary ms-2" href="/scheduler" target="_blank">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Open Scheduler UI
+                </a>
+            </div>
+        </div>
+
+        @* ── System Info Card ────────────────────────────────── *@
+        <div class="card">
+            <div class="card-header">System Info</div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <tr><td>Version</td><td>0.1.0</td></tr>
+                    <tr><td>Runtime</td><td>.NET @Environment.Version</td></tr>
+                    <tr><td>OS</td><td>@Environment.OSVersion</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+}
+
+@code {
+    // ── State ────────────────────────────────────────────────
+    private bool _loading = true;
+
+    // ── Scheduler Settings ────────────────────────────────────
+    private SchedulerSettingsDto _schedulerSettings = new();
+    private bool _schedulerSaving;
+    private bool? _schedulerSaveSuccess;
+    private string? _schedulerError;
+
+    // ── Lifecycle ────────────────────────────────────────────
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSchedulerSettings();
+        _loading = false;
+    }
+
+    private async Task LoadSchedulerSettings()
+    {
+        try
+        {
+            var http = HttpClientFactory.CreateClient("scheduler");
+            var result = await http.GetFromJsonAsync<SchedulerSettingsDto>("/api/scheduler/settings");
+            if (result is not null) _schedulerSettings = result;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load scheduler settings");
+            _schedulerError = "Scheduler service unavailable — showing defaults.";
+        }
+    }
+
+    private async Task SaveSchedulerSettings()
+    {
+        _schedulerSaving = true;
+        _schedulerSaveSuccess = null;
+        StateHasChanged();
+        try
+        {
+            var http = HttpClientFactory.CreateClient("scheduler");
+            var response = await http.PutAsJsonAsync("/api/scheduler/settings", _schedulerSettings);
+            _schedulerSaveSuccess = response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to save scheduler settings");
+            _schedulerSaveSuccess = false;
+            _schedulerError = ex.Message;
+        }
+        finally
+        {
+            _schedulerSaving = false;
+            StateHasChanged();
+            if (_schedulerSaveSuccess == true)
+            {
+                await Task.Delay(4000);
+                _schedulerSaveSuccess = null;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private sealed class SchedulerSettingsDto
+    {
+        public int MaxConcurrentJobs { get; set; } = 3;
+        public int JobTimeoutSeconds { get; set; } = 300;
+        public int PollIntervalSeconds { get; set; } = 30;
+    }
+}
+
