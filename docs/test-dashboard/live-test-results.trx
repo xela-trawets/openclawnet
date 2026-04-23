@@ -1,92 +1,150 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TestRun id="79d7828d-79e9-4edb-93fd-54ed5330f887" name="brunocapuano@CPC-bruno-U7R9O 2026-04-22 12:21:19" runUser="NORTHAMERICA\brunocapuano" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
-  <Times creation="2026-04-22T12:21:19.8795298-04:00" queuing="2026-04-22T12:21:19.8795302-04:00" start="2026-04-22T12:21:16.2314166-04:00" finish="2026-04-22T12:21:57.2849381-04:00" />
-  <TestSettings name="default" id="89b9471e-7d09-45ba-9e47-f0d097aa0a1b">
-    <Deployment runDeploymentRoot="brunocapuano_CPC-bruno-U7R9O_2026-04-22_12_21_19" />
+<TestRun id="c161f604-2205-4f8d-8b0d-56e1d4629ad2" name="brunocapuano@CPC-bruno-U7R9O 2026-04-23 07:07:25" runUser="NORTHAMERICA\brunocapuano" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-04-23T07:07:25.2748726-04:00" queuing="2026-04-23T07:07:25.2748732-04:00" start="2026-04-23T07:07:21.6450202-04:00" finish="2026-04-23T07:09:30.2881736-04:00" />
+  <TestSettings name="default" id="14f6d18a-40ca-4573-a123-d684d62c6c2d">
+    <Deployment runDeploymentRoot="brunocapuano_CPC-bruno-U7R9O_2026-04-23_07_07_25" />
   </TestSettings>
   <Results>
-    <UnitTestResult executionId="8ab1f875-fe92-4311-b5b4-592f67eeae2d" testId="1552e680-2a54-f2da-8bde-a7cb3084b1da" testName="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.CompleteAsync_ReturnsNonEmptyResponse" computerName="CPC-bruno-U7R9O" duration="00:00:04.7389482" startTime="2026-04-22T12:21:22.2804600-04:00" endTime="2026-04-22T12:21:27.0173035-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8ab1f875-fe92-4311-b5b4-592f67eeae2d" />
-    <UnitTestResult executionId="0aa750ab-ea30-45a4-8571-91ad4bef4abf" testId="87846d23-405a-3372-0807-babee989a98a" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_StreamAsync_YieldsTokens" computerName="CPC-bruno-U7R9O" duration="00:00:02.9893433" startTime="2026-04-22T12:21:48.2306052-04:00" endTime="2026-04-22T12:21:51.2201075-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0aa750ab-ea30-45a4-8571-91ad4bef4abf" />
-    <UnitTestResult executionId="6c66c32e-1147-44ee-a9c5-4b1f0d5ee5ce" testId="f1c17355-0402-9cd0-cfce-ee3a0ab3f558" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_CompleteAsync_ReturnsResponse" computerName="CPC-bruno-U7R9O" duration="00:00:19.7534876" startTime="2026-04-22T12:21:17.0861076-04:00" endTime="2026-04-22T12:21:36.8442940-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6c66c32e-1147-44ee-a9c5-4b1f0d5ee5ce" />
-    <UnitTestResult executionId="33247b4e-6307-41a7-9334-3771d3d98956" testId="7dcfb46b-649a-3275-190d-a4d21774729e" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.AzureOpenAI_Pipeline_SendMessage_ReturnsStreamedContent" computerName="CPC-bruno-U7R9O" duration="00:00:01.5628368" startTime="2026-04-22T12:21:51.2208691-04:00" endTime="2026-04-22T12:21:52.7835332-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="33247b4e-6307-41a7-9334-3771d3d98956" />
-    <UnitTestResult executionId="d526b504-64d9-40ae-8277-fb58a8322f12" testId="76dc2353-aa44-2f5c-744b-e481416bc2ab" testName="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.IsAvailableAsync_ReturnsTrueWhenConfigured" computerName="CPC-bruno-U7R9O" duration="00:00:01.8595907" startTime="2026-04-22T12:21:27.0179532-04:00" endTime="2026-04-22T12:21:28.8774743-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d526b504-64d9-40ae-8277-fb58a8322f12" />
-    <UnitTestResult executionId="7e3ababc-4c93-4a65-8462-a7abccb97bf6" testId="3d9f655e-9373-0b97-470d-4d4603fd0069" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.AzureOpenAI_StreamAsync_YieldsTokens" computerName="CPC-bruno-U7R9O" duration="00:00:03.3333732" startTime="2026-04-22T12:21:44.8976832-04:00" endTime="2026-04-22T12:21:48.2299617-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7e3ababc-4c93-4a65-8462-a7abccb97bf6" />
-    <UnitTestResult executionId="2e437a2e-5dfd-4c37-83f6-cecc36abffa5" testId="7e2c74b4-0192-3692-cca9-e91ebd6595d5" testName="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.StreamAsync_WithTools_YieldsToolCallChunk" computerName="CPC-bruno-U7R9O" duration="00:00:02.7492304" startTime="2026-04-22T12:21:17.0878817-04:00" endTime="2026-04-22T12:21:19.8453420-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2e437a2e-5dfd-4c37-83f6-cecc36abffa5" />
-    <UnitTestResult executionId="11157961-016d-42af-9dbc-a5075b419bcf" testId="1f26c548-c25c-b1ae-a87b-5ddc53b757e9" testName="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.StreamAsync_YieldsChunksAndCompletesSuccessfully" computerName="CPC-bruno-U7R9O" duration="00:00:02.4287131" startTime="2026-04-22T12:21:19.8648710-04:00" endTime="2026-04-22T12:21:22.2777922-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="11157961-016d-42af-9dbc-a5075b419bcf" />
-    <UnitTestResult executionId="6148e56b-273c-4bad-b929-bc06a18f659e" testId="2eb77de5-46b3-11b6-343b-8ab1df70edd2" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_Pipeline_SendMessage_ReturnsStreamedContent" computerName="CPC-bruno-U7R9O" duration="00:00:08.0512079" startTime="2026-04-22T12:21:36.8449016-04:00" endTime="2026-04-22T12:21:44.8958058-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6148e56b-273c-4bad-b929-bc06a18f659e" />
-    <UnitTestResult executionId="7ea25ca9-8336-411f-90c5-307c495229c6" testId="455c434b-954c-cf2c-db2a-703d0a72e4e3" testName="OpenClawNet.UnitTests.Models.OllamaStreamingToolCallLiveTests.StreamAsync_WithTools_YieldsToolCallChunk" computerName="CPC-bruno-U7R9O" duration="00:00:23.6386158" startTime="2026-04-22T12:21:17.0878292-04:00" endTime="2026-04-22T12:21:40.7318534-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7ea25ca9-8336-411f-90c5-307c495229c6" />
-    <UnitTestResult executionId="69ffd3ea-d2a2-49c2-a461-bc5c5a9609da" testId="179d2c08-2086-a946-9964-c5d985daf0a8" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.AzureOpenAI_CompleteAsync_ReturnsResponse" computerName="CPC-bruno-U7R9O" duration="00:00:04.4209827" startTime="2026-04-22T12:21:52.7846507-04:00" endTime="2026-04-22T12:21:57.2050829-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="69ffd3ea-d2a2-49c2-a461-bc5c5a9609da" />
+    <UnitTestResult executionId="d66a6f97-442b-47a0-802a-85248e15bcbb" testId="87846d23-405a-3372-0807-babee989a98a" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_StreamAsync_YieldsTokens" computerName="CPC-bruno-U7R9O" duration="00:00:02.8848376" startTime="2026-04-23T07:09:20.5803326-04:00" endTime="2026-04-23T07:09:23.4653168-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d66a6f97-442b-47a0-802a-85248e15bcbb" />
+    <UnitTestResult executionId="d6a7d673-2ca3-4025-a5f9-1339431f01a8" testId="1f26c548-c25c-b1ae-a87b-5ddc53b757e9" testName="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.StreamAsync_YieldsChunksAndCompletesSuccessfully" computerName="CPC-bruno-U7R9O" duration="00:00:02.2630587" startTime="2026-04-23T07:07:24.9196734-04:00" endTime="2026-04-23T07:07:27.1741709-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d6a7d673-2ca3-4025-a5f9-1339431f01a8" />
+    <UnitTestResult executionId="53eb86b0-3121-4f0e-9116-96a51ffbcde2" testId="179d2c08-2086-a946-9964-c5d985daf0a8" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.AzureOpenAI_CompleteAsync_ReturnsResponse" computerName="CPC-bruno-U7R9O" duration="00:00:03.4899986" startTime="2026-04-23T07:09:26.7184516-04:00" endTime="2026-04-23T07:09:30.2080401-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="53eb86b0-3121-4f0e-9116-96a51ffbcde2" />
+    <UnitTestResult executionId="34c93a96-f4c6-40be-961b-c60ddc539899" testId="f1c17355-0402-9cd0-cfce-ee3a0ab3f558" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_CompleteAsync_ReturnsResponse" computerName="CPC-bruno-U7R9O" duration="00:01:42.1960512" startTime="2026-04-23T07:07:22.6452387-04:00" endTime="2026-04-23T07:09:04.8569921-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="34c93a96-f4c6-40be-961b-c60ddc539899">
+      <Output>
+        <ErrorInfo>
+          <Message>System.Threading.Tasks.TaskCanceledException : The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.&#xD;
+---- System.TimeoutException : The operation was canceled.&#xD;
+-------- System.Threading.Tasks.TaskCanceledException : The operation was canceled.&#xD;
+------------ System.IO.IOException : Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request..&#xD;
+---------------- System.Net.Sockets.SocketException : The I/O operation has been aborted because of either a thread exit or an application request.</Message>
+          <StackTrace>   at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)&#xD;
+   at System.Net.Http.HttpClient.&lt;SendAsync&gt;g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)&#xD;
+   at OpenClawNet.Models.Ollama.OllamaModelClient.CompleteAsync(ChatRequest request, CancellationToken cancellationToken) in C:\src\openclawnet-plan\src\OpenClawNet.Models.Ollama\OllamaModelClient.cs:line 40&#xD;
+   at OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_CompleteAsync_ReturnsResponse() in C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\Integration\LiveLlmTests.cs:line 51&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+&#xD;
+----- Inner Stack Trace -----&#xD;
+   at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)&#xD;
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+   at System.Net.Http.HttpClient.&lt;SendAsync&gt;g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)&#xD;
+----- Inner Stack Trace -----&#xD;
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)&#xD;
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource&lt;System.Int32&gt;.GetResult(Int16 token)&#xD;
+   at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+----- Inner Stack Trace -----&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="2b53bcdb-647d-4cb5-86d4-c66db69376d2" testId="7e2c74b4-0192-3692-cca9-e91ebd6595d5" testName="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.StreamAsync_WithTools_YieldsToolCallChunk" computerName="CPC-bruno-U7R9O" duration="00:00:02.2543978" startTime="2026-04-23T07:07:22.6453116-04:00" endTime="2026-04-23T07:07:24.9079526-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2b53bcdb-647d-4cb5-86d4-c66db69376d2" />
+    <UnitTestResult executionId="c7df0761-8ada-4df4-a136-ec05a9ee069a" testId="76dc2353-aa44-2f5c-744b-e481416bc2ab" testName="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.IsAvailableAsync_ReturnsTrueWhenConfigured" computerName="CPC-bruno-U7R9O" duration="00:00:01.4477416" startTime="2026-04-23T07:07:29.5133279-04:00" endTime="2026-04-23T07:07:30.9611406-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c7df0761-8ada-4df4-a136-ec05a9ee069a" />
+    <UnitTestResult executionId="b000d28f-6e38-4ae2-975b-78ad502a026b" testId="2eb77de5-46b3-11b6-343b-8ab1df70edd2" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_Pipeline_SendMessage_ReturnsStreamedContent" computerName="CPC-bruno-U7R9O" duration="00:00:13.2062455" startTime="2026-04-23T07:09:04.8641434-04:00" endTime="2026-04-23T07:09:18.0635052-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b000d28f-6e38-4ae2-975b-78ad502a026b" />
+    <UnitTestResult executionId="52f1e702-69b0-4533-929e-9f84fdb88c8b" testId="7dcfb46b-649a-3275-190d-a4d21774729e" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.AzureOpenAI_Pipeline_SendMessage_ReturnsStreamedContent" computerName="CPC-bruno-U7R9O" duration="00:00:03.2513754" startTime="2026-04-23T07:09:23.4661246-04:00" endTime="2026-04-23T07:09:26.7173381-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="52f1e702-69b0-4533-929e-9f84fdb88c8b" />
+    <UnitTestResult executionId="2c63674e-0d8e-4baf-8f9a-90c63d2991de" testId="3d9f655e-9373-0b97-470d-4d4603fd0069" testName="OpenClawNet.UnitTests.Integration.LiveLlmTests.AzureOpenAI_StreamAsync_YieldsTokens" computerName="CPC-bruno-U7R9O" duration="00:00:02.5154991" startTime="2026-04-23T07:09:18.0643500-04:00" endTime="2026-04-23T07:09:20.5798084-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2c63674e-0d8e-4baf-8f9a-90c63d2991de" />
+    <UnitTestResult executionId="be7afd06-2ca0-454c-be8c-4e2eebf97f08" testId="455c434b-954c-cf2c-db2a-703d0a72e4e3" testName="OpenClawNet.UnitTests.Models.OllamaStreamingToolCallLiveTests.StreamAsync_WithTools_YieldsToolCallChunk" computerName="CPC-bruno-U7R9O" duration="00:01:42.2054455" startTime="2026-04-23T07:07:22.6430047-04:00" endTime="2026-04-23T07:09:04.8642217-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="be7afd06-2ca0-454c-be8c-4e2eebf97f08">
+      <Output>
+        <ErrorInfo>
+          <Message>System.Threading.Tasks.TaskCanceledException : The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.&#xD;
+---- System.TimeoutException : The operation was canceled.&#xD;
+-------- System.Threading.Tasks.TaskCanceledException : The operation was canceled.&#xD;
+------------ System.IO.IOException : Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request..&#xD;
+---------------- System.Net.Sockets.SocketException : The I/O operation has been aborted because of either a thread exit or an application request.</Message>
+          <StackTrace>   at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)&#xD;
+   at System.Net.Http.HttpClient.&lt;SendAsync&gt;g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)&#xD;
+   at OpenClawNet.Models.Ollama.OllamaModelClient.StreamAsync(ChatRequest request, CancellationToken cancellationToken)+MoveNext() in C:\src\openclawnet-plan\src\OpenClawNet.Models.Ollama\OllamaModelClient.cs:line 60&#xD;
+   at OpenClawNet.Models.Ollama.OllamaModelClient.StreamAsync(ChatRequest request, CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource&lt;System.Boolean&gt;.GetResult()&#xD;
+   at OpenClawNet.UnitTests.Models.OllamaStreamingToolCallLiveTests.StreamAsync_WithTools_YieldsToolCallChunk() in C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\Models\OllamaStreamingToolCallLiveTests.cs:line 67&#xD;
+   at OpenClawNet.UnitTests.Models.OllamaStreamingToolCallLiveTests.StreamAsync_WithTools_YieldsToolCallChunk() in C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\Models\OllamaStreamingToolCallLiveTests.cs:line 67&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+&#xD;
+----- Inner Stack Trace -----&#xD;
+   at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)&#xD;
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+   at System.Net.Http.HttpClient.&lt;SendAsync&gt;g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)&#xD;
+----- Inner Stack Trace -----&#xD;
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)&#xD;
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource&lt;System.Int32&gt;.GetResult(Int16 token)&#xD;
+   at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+----- Inner Stack Trace -----&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="0a97faac-f673-4c7f-9670-d8b383a35830" testId="1552e680-2a54-f2da-8bde-a7cb3084b1da" testName="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.CompleteAsync_ReturnsNonEmptyResponse" computerName="CPC-bruno-U7R9O" duration="00:00:02.3379462" startTime="2026-04-23T07:07:27.1766799-04:00" endTime="2026-04-23T07:07:29.5126250-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0a97faac-f673-4c7f-9670-d8b383a35830" />
   </Results>
   <TestDefinitions>
     <UnitTest name="OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_StreamAsync_YieldsTokens" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="87846d23-405a-3372-0807-babee989a98a">
-      <Execution id="0aa750ab-ea30-45a4-8571-91ad4bef4abf" />
+      <Execution id="d66a6f97-442b-47a0-802a-85248e15bcbb" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Integration.LiveLlmTests" name="Ollama_StreamAsync_YieldsTokens" />
     </UnitTest>
     <UnitTest name="OpenClawNet.UnitTests.Integration.LiveLlmTests.AzureOpenAI_Pipeline_SendMessage_ReturnsStreamedContent" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="7dcfb46b-649a-3275-190d-a4d21774729e">
-      <Execution id="33247b4e-6307-41a7-9334-3771d3d98956" />
+      <Execution id="52f1e702-69b0-4533-929e-9f84fdb88c8b" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Integration.LiveLlmTests" name="AzureOpenAI_Pipeline_SendMessage_ReturnsStreamedContent" />
     </UnitTest>
     <UnitTest name="OpenClawNet.UnitTests.Integration.LiveLlmTests.AzureOpenAI_CompleteAsync_ReturnsResponse" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="179d2c08-2086-a946-9964-c5d985daf0a8">
-      <Execution id="69ffd3ea-d2a2-49c2-a461-bc5c5a9609da" />
+      <Execution id="53eb86b0-3121-4f0e-9116-96a51ffbcde2" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Integration.LiveLlmTests" name="AzureOpenAI_CompleteAsync_ReturnsResponse" />
     </UnitTest>
     <UnitTest name="OpenClawNet.UnitTests.Models.OllamaStreamingToolCallLiveTests.StreamAsync_WithTools_YieldsToolCallChunk" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="455c434b-954c-cf2c-db2a-703d0a72e4e3">
-      <Execution id="7ea25ca9-8336-411f-90c5-307c495229c6" />
+      <Execution id="be7afd06-2ca0-454c-be8c-4e2eebf97f08" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Models.OllamaStreamingToolCallLiveTests" name="StreamAsync_WithTools_YieldsToolCallChunk" />
     </UnitTest>
     <UnitTest name="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.StreamAsync_YieldsChunksAndCompletesSuccessfully" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="1f26c548-c25c-b1ae-a87b-5ddc53b757e9">
-      <Execution id="11157961-016d-42af-9dbc-a5075b419bcf" />
+      <Execution id="d6a7d673-2ca3-4025-a5f9-1339431f01a8" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests" name="StreamAsync_YieldsChunksAndCompletesSuccessfully" />
     </UnitTest>
     <UnitTest name="OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_CompleteAsync_ReturnsResponse" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="f1c17355-0402-9cd0-cfce-ee3a0ab3f558">
-      <Execution id="6c66c32e-1147-44ee-a9c5-4b1f0d5ee5ce" />
+      <Execution id="34c93a96-f4c6-40be-961b-c60ddc539899" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Integration.LiveLlmTests" name="Ollama_CompleteAsync_ReturnsResponse" />
     </UnitTest>
     <UnitTest name="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.IsAvailableAsync_ReturnsTrueWhenConfigured" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="76dc2353-aa44-2f5c-744b-e481416bc2ab">
-      <Execution id="d526b504-64d9-40ae-8277-fb58a8322f12" />
+      <Execution id="c7df0761-8ada-4df4-a136-ec05a9ee069a" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests" name="IsAvailableAsync_ReturnsTrueWhenConfigured" />
     </UnitTest>
     <UnitTest name="OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_Pipeline_SendMessage_ReturnsStreamedContent" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="2eb77de5-46b3-11b6-343b-8ab1df70edd2">
-      <Execution id="6148e56b-273c-4bad-b929-bc06a18f659e" />
+      <Execution id="b000d28f-6e38-4ae2-975b-78ad502a026b" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Integration.LiveLlmTests" name="Ollama_Pipeline_SendMessage_ReturnsStreamedContent" />
     </UnitTest>
     <UnitTest name="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.CompleteAsync_ReturnsNonEmptyResponse" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="1552e680-2a54-f2da-8bde-a7cb3084b1da">
-      <Execution id="8ab1f875-fe92-4311-b5b4-592f67eeae2d" />
+      <Execution id="0a97faac-f673-4c7f-9670-d8b383a35830" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests" name="CompleteAsync_ReturnsNonEmptyResponse" />
     </UnitTest>
     <UnitTest name="OpenClawNet.UnitTests.Integration.LiveLlmTests.AzureOpenAI_StreamAsync_YieldsTokens" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="3d9f655e-9373-0b97-470d-4d4603fd0069">
-      <Execution id="7e3ababc-4c93-4a65-8462-a7abccb97bf6" />
+      <Execution id="2c63674e-0d8e-4baf-8f9a-90c63d2991de" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Integration.LiveLlmTests" name="AzureOpenAI_StreamAsync_YieldsTokens" />
     </UnitTest>
     <UnitTest name="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests.StreamAsync_WithTools_YieldsToolCallChunk" storage="c:\src\openclawnet-plan\tests\openclawnet.unittests\bin\debug\net10.0\openclawnet.unittests.dll" id="7e2c74b4-0192-3692-cca9-e91ebd6595d5">
-      <Execution id="2e437a2e-5dfd-4c37-83f6-cecc36abffa5" />
+      <Execution id="2b53bcdb-647d-4cb5-86d4-c66db69376d2" />
       <TestMethod codeBase="C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\bin\Debug\net10.0\OpenClawNet.UnitTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="OpenClawNet.UnitTests.Models.AzureOpenAILiveTests" name="StreamAsync_WithTools_YieldsToolCallChunk" />
     </UnitTest>
   </TestDefinitions>
   <TestEntries>
-    <TestEntry testId="1552e680-2a54-f2da-8bde-a7cb3084b1da" executionId="8ab1f875-fe92-4311-b5b4-592f67eeae2d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
-    <TestEntry testId="87846d23-405a-3372-0807-babee989a98a" executionId="0aa750ab-ea30-45a4-8571-91ad4bef4abf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
-    <TestEntry testId="f1c17355-0402-9cd0-cfce-ee3a0ab3f558" executionId="6c66c32e-1147-44ee-a9c5-4b1f0d5ee5ce" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
-    <TestEntry testId="7dcfb46b-649a-3275-190d-a4d21774729e" executionId="33247b4e-6307-41a7-9334-3771d3d98956" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
-    <TestEntry testId="76dc2353-aa44-2f5c-744b-e481416bc2ab" executionId="d526b504-64d9-40ae-8277-fb58a8322f12" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
-    <TestEntry testId="3d9f655e-9373-0b97-470d-4d4603fd0069" executionId="7e3ababc-4c93-4a65-8462-a7abccb97bf6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
-    <TestEntry testId="7e2c74b4-0192-3692-cca9-e91ebd6595d5" executionId="2e437a2e-5dfd-4c37-83f6-cecc36abffa5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
-    <TestEntry testId="1f26c548-c25c-b1ae-a87b-5ddc53b757e9" executionId="11157961-016d-42af-9dbc-a5075b419bcf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
-    <TestEntry testId="2eb77de5-46b3-11b6-343b-8ab1df70edd2" executionId="6148e56b-273c-4bad-b929-bc06a18f659e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
-    <TestEntry testId="455c434b-954c-cf2c-db2a-703d0a72e4e3" executionId="7ea25ca9-8336-411f-90c5-307c495229c6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
-    <TestEntry testId="179d2c08-2086-a946-9964-c5d985daf0a8" executionId="69ffd3ea-d2a2-49c2-a461-bc5c5a9609da" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="87846d23-405a-3372-0807-babee989a98a" executionId="d66a6f97-442b-47a0-802a-85248e15bcbb" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1f26c548-c25c-b1ae-a87b-5ddc53b757e9" executionId="d6a7d673-2ca3-4025-a5f9-1339431f01a8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="179d2c08-2086-a946-9964-c5d985daf0a8" executionId="53eb86b0-3121-4f0e-9116-96a51ffbcde2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f1c17355-0402-9cd0-cfce-ee3a0ab3f558" executionId="34c93a96-f4c6-40be-961b-c60ddc539899" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7e2c74b4-0192-3692-cca9-e91ebd6595d5" executionId="2b53bcdb-647d-4cb5-86d4-c66db69376d2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="76dc2353-aa44-2f5c-744b-e481416bc2ab" executionId="c7df0761-8ada-4df4-a136-ec05a9ee069a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2eb77de5-46b3-11b6-343b-8ab1df70edd2" executionId="b000d28f-6e38-4ae2-975b-78ad502a026b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7dcfb46b-649a-3275-190d-a4d21774729e" executionId="52f1e702-69b0-4533-929e-9f84fdb88c8b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3d9f655e-9373-0b97-470d-4d4603fd0069" executionId="2c63674e-0d8e-4baf-8f9a-90c63d2991de" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="455c434b-954c-cf2c-db2a-703d0a72e4e3" executionId="be7afd06-2ca0-454c-be8c-4e2eebf97f08" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1552e680-2a54-f2da-8bde-a7cb3084b1da" executionId="0a97faac-f673-4c7f-9670-d8b383a35830" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
   </TestEntries>
   <TestLists>
     <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
     <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
   </TestLists>
-  <ResultSummary outcome="Completed">
-    <Counters total="11" executed="11" passed="11" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  <ResultSummary outcome="Failed">
+    <Counters total="11" executed="11" passed="9" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
     <Output>
       <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.6)&#xD;
-[xUnit.net 00:00:00.16]   Discovering: OpenClawNet.UnitTests&#xD;
-[xUnit.net 00:00:00.28]   Discovered:  OpenClawNet.UnitTests&#xD;
-[xUnit.net 00:00:00.31]   Starting:    OpenClawNet.UnitTests&#xD;
+[xUnit.net 00:00:00.13]   Discovering: OpenClawNet.UnitTests&#xD;
+[xUnit.net 00:00:00.26]   Discovered:  OpenClawNet.UnitTests&#xD;
+[xUnit.net 00:00:00.30]   Starting:    OpenClawNet.UnitTests&#xD;
      Warning:&#xD;
      The component "Fluent Assertions" is governed by the rules defined in the Xceed License Agreement and&#xD;
      the Xceed Fluent Assertions Community License. You may use Fluent Assertions free of charge for&#xD;
@@ -96,8 +154,66 @@
      Fluent Assertions users under both commercial and community licenses. Help us&#xD;
      keep Fluent Assertions at the forefront of unit testing.&#xD;
      For more information, visit https://xceed.com/products/unit-testing/fluent-assertions/&#xD;
-[xUnit.net 00:00:40.47]   Finished:    OpenClawNet.UnitTests&#xD;
+[xUnit.net 00:01:42.55]       System.Threading.Tasks.TaskCanceledException : The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.&#xD;
+[xUnit.net 00:01:42.55]       ---- System.TimeoutException : The operation was canceled.&#xD;
+[xUnit.net 00:01:42.55]       -------- System.Threading.Tasks.TaskCanceledException : The operation was canceled.&#xD;
+[xUnit.net 00:01:42.55]       ------------ System.IO.IOException : Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request..&#xD;
+[xUnit.net 00:01:42.55]       ---------------- System.Net.Sockets.SocketException : The I/O operation has been aborted because of either a thread exit or an application request.&#xD;
+[xUnit.net 00:01:42.55]       Stack Trace:&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpClient.&lt;SendAsync&gt;g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)&#xD;
+[xUnit.net 00:01:42.55]         C:\src\openclawnet-plan\src\OpenClawNet.Models.Ollama\OllamaModelClient.cs(40,0): at OpenClawNet.Models.Ollama.OllamaModelClient.CompleteAsync(ChatRequest request, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]         C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\Integration\LiveLlmTests.cs(51,0): at OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_CompleteAsync_ReturnsResponse()&#xD;
+[xUnit.net 00:01:42.55]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:01:42.55]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:01:42.55]         &#xD;
+[xUnit.net 00:01:42.55]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpClient.&lt;SendAsync&gt;g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)&#xD;
+[xUnit.net 00:01:42.55]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource&lt;System.Int32&gt;.GetResult(Int16 token)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:01:42.55]         &#xD;
+[xUnit.net 00:01:42.55]       System.Threading.Tasks.TaskCanceledException : The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.&#xD;
+[xUnit.net 00:01:42.55]       ---- System.TimeoutException : The operation was canceled.&#xD;
+[xUnit.net 00:01:42.55]       -------- System.Threading.Tasks.TaskCanceledException : The operation was canceled.&#xD;
+[xUnit.net 00:01:42.55]       ------------ System.IO.IOException : Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request..&#xD;
+[xUnit.net 00:01:42.55]       ---------------- System.Net.Sockets.SocketException : The I/O operation has been aborted because of either a thread exit or an application request.&#xD;
+[xUnit.net 00:01:42.55]       Stack Trace:&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpClient.&lt;SendAsync&gt;g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)&#xD;
+[xUnit.net 00:01:42.55]         C:\src\openclawnet-plan\src\OpenClawNet.Models.Ollama\OllamaModelClient.cs(60,0): at OpenClawNet.Models.Ollama.OllamaModelClient.StreamAsync(ChatRequest request, CancellationToken cancellationToken)+MoveNext()&#xD;
+[xUnit.net 00:01:42.55]            at OpenClawNet.Models.Ollama.OllamaModelClient.StreamAsync(ChatRequest request, CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource&lt;System.Boolean&gt;.GetResult()&#xD;
+[xUnit.net 00:01:42.55]         C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\Models\OllamaStreamingToolCallLiveTests.cs(67,0): at OpenClawNet.UnitTests.Models.OllamaStreamingToolCallLiveTests.StreamAsync_WithTools_YieldsToolCallChunk()&#xD;
+[xUnit.net 00:01:42.55]         C:\src\openclawnet-plan\tests\OpenClawNet.UnitTests\Models\OllamaStreamingToolCallLiveTests.cs(67,0): at OpenClawNet.UnitTests.Models.OllamaStreamingToolCallLiveTests.StreamAsync_WithTools_YieldsToolCallChunk()&#xD;
+[xUnit.net 00:01:42.55]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:01:42.55]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:01:42.55]         &#xD;
+[xUnit.net 00:01:42.55]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpClient.&lt;SendAsync&gt;g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)&#xD;
+[xUnit.net 00:01:42.55]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource&lt;System.Int32&gt;.GetResult(Int16 token)&#xD;
+[xUnit.net 00:01:42.55]            at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:01:42.55]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:01:42.55]         &#xD;
+[xUnit.net 00:02:07.90]   Finished:    OpenClawNet.UnitTests&#xD;
 </StdOut>
     </Output>
+    <RunInfos>
+      <RunInfo computerName="CPC-bruno-U7R9O" outcome="Error" timestamp="2026-04-23T07:09:04.8605162-04:00">
+        <Text>[xUnit.net 00:01:42.55]     OpenClawNet.UnitTests.Integration.LiveLlmTests.Ollama_CompleteAsync_ReturnsResponse [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="CPC-bruno-U7R9O" outcome="Error" timestamp="2026-04-23T07:09:04.8664034-04:00">
+        <Text>[xUnit.net 00:01:42.55]     OpenClawNet.UnitTests.Models.OllamaStreamingToolCallLiveTests.StreamAsync_WithTools_YieldsToolCallChunk [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
   </ResultSummary>
 </TestRun>
