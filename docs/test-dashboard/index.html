@@ -176,8 +176,8 @@ body{
       <div class="hero-subtitle">Test Dashboard &mdash; Unit Tests + E2E (Playwright + Aspire)</div>
     </div>
     <div class="hero-badge">
-      <span class="big"><!-- TOTAL_PASSED -->650<!-- /TOTAL_PASSED --> / <!-- TOTAL_TESTS -->652<!-- /TOTAL_TESTS --></span>
-      650 Passing &bull; 0 Failing &bull; 2 Skipped
+      <span class="big"><!-- TOTAL_PASSED -->829<!-- /TOTAL_PASSED --> / <!-- TOTAL_TESTS -->830<!-- /TOTAL_TESTS --></span>
+      829 Passing &bull; 1 Failing &bull; 3 Skipped
     </div>
   </div>
   <div class="nav-links">
@@ -188,10 +188,10 @@ body{
 </header>
 <section class="container">
   <div class="summary-bar">
-    <div class="stat-card stat-total"><div class="stat-value"><!-- TOTAL_TESTS -->652<!-- /TOTAL_TESTS --></div><div class="stat-label">Total Tests</div><div class="stat-breakdown">60 E2E &bull; 527 Unit &bull; 54 Integration &bull; 11 Live</div></div>
-    <div class="stat-card stat-passed"><div class="stat-value"><!-- TOTAL_PASSED -->650<!-- /TOTAL_PASSED --></div><div class="stat-label">Passed</div><div class="stat-breakdown">60 E2E &bull; 526 Unit &bull; 53 Integration &bull; 11 Live</div></div>
-    <div class="stat-card stat-failed"><div class="stat-value"><!-- TOTAL_FAILED -->0<!-- /TOTAL_FAILED --></div><div class="stat-label">Failed</div><div class="stat-breakdown">0 E2E &bull; 0 Unit &bull; 0 Integration &bull; 0 Live</div></div>
-    <div class="stat-card stat-duration"><div class="stat-value"><!-- TOTAL_DURATION -->5m 0s<!-- /TOTAL_DURATION --></div><div class="stat-label">Duration</div><div class="stat-breakdown">E2E: 3m 49s &bull; Unit: 7s &bull; Integration: 23s &bull; Live: 40s</div></div>
+    <div class="stat-card stat-total"><div class="stat-value"><!-- TOTAL_TESTS -->830<!-- /TOTAL_TESTS --></div><div class="stat-label">Total Tests</div><div class="stat-breakdown">60 E2E &bull; 657 Unit &bull; 102 Integration &bull; 11 Live</div></div>
+    <div class="stat-card stat-passed"><div class="stat-value"><!-- TOTAL_PASSED -->829<!-- /TOTAL_PASSED --></div><div class="stat-label">Passed</div><div class="stat-breakdown">60 E2E &bull; 657 Unit &bull; 102 Integration &bull; 11 Live</div></div>
+    <div class="stat-card stat-failed"><div class="stat-value"><!-- TOTAL_FAILED -->1<!-- /TOTAL_FAILED --></div><div class="stat-label">Failed</div><div class="stat-breakdown">0 E2E &bull; 1 Unit &bull; 0 Integration &bull; 0 Live</div></div>
+    <div class="stat-card stat-duration"><div class="stat-value"><!-- TOTAL_DURATION -->5m 40s<!-- /TOTAL_DURATION --></div><div class="stat-label">Duration</div><div class="stat-breakdown">E2E: 3m 49s &bull; Unit: 13s &bull; Integration: 24s &bull; Live: 40s</div></div>
   </div>
   <div style="text-align:center; margin-bottom: 16px; font-size: 0.8rem; color: var(--muted);">
       Dashboard generated: <!-- DASHBOARD_DATE -->April 23, 2026 at 10:19 PM UTC<!-- /DASHBOARD_DATE -->
@@ -370,7 +370,7 @@ body{
 <div id="unit-tests" style="margin: 40px 0 24px; padding: 20px 0; border-top: 2px solid rgba(124,92,252,0.2);">
   <h2 style="font-size: 1.3rem; font-weight: 700; color: var(--teal-light); display: flex; align-items: center; gap: 10px;">
     <span>&#x1F9EA;</span> Unit Tests
-    <span style="font-size: 0.8rem; color: var(--muted); font-weight: 500; margin-left: auto;">527 tests &bull; 6s total &bull; all passing</span>
+    <span style="font-size: 0.8rem; color: var(--muted); font-weight: 500; margin-left: auto;">657 tests &bull; 13s total &bull; 657 passing &bull; 1 failing (pre-existing) &bull; 3 skipped</span>
   </h2>
   <p style="font-size: 0.85rem; color: var(--muted); margin-top: 6px;">Fast isolated tests &mdash; no Aspire, no Ollama, no network. Run with <code style="font-family:'JetBrains Mono',monospace; background: var(--code-bg); padding: 2px 6px; border-radius: 3px; font-size: 0.8rem; color: var(--teal-light);">dotnet test tests/OpenClawNet.UnitTests</code></p>
 </div>
@@ -379,7 +379,7 @@ body{
   <div class="demo-card">
     <div class="demo-header">
       <span class="demo-number">INTEGRATION</span>
-      <span class="demo-title">Integration Tests</span>
+      <span class="demo-title">Integration Tests — Legacy (Chat, Pipeline, LLM)</span>
       <span class="demo-count">19 tests</span>
       <span class="demo-desc">Chat smoke tests, live LLM tests, and streaming endpoint tests</span>
     </div>
@@ -403,6 +403,81 @@ body{
       <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Ollama &mdash; CompleteAsync ReturnsResponse</div></div><span class="test-duration">3.2s</span></div>
       <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Ollama &mdash; Pipeline SendMessage ReturnsStreamedContent</div></div><span class="test-duration">9.5s</span></div>
       <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Ollama &mdash; StreamAsync YieldsTokens</div></div><span class="test-duration">3s</span></div>
+    </div>
+  </div>
+
+  <div class="demo-card">
+    <div class="demo-header">
+      <span class="demo-number">INTEGRATION</span>
+      <span class="demo-title">REST Endpoint Coverage — Debug-First APIs</span>
+      <span class="demo-count">39 tests (29 RestCoverage + 10 NewEndpoints)</span>
+      <span class="demo-desc">Comprehensive REST API coverage: tool calls, artifacts, state history, logs, search, health</span>
+    </div>
+    <div class="test-list">
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/jobs/{id}/runs/{runId}/tool-calls (3 tests)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsNotFound WhenRunDoesNotExist</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsEmptyList WhenNoToolCalls</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsToolCalls WithSuccessAndFailure</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/tool-call-history (6 tests)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsEmptyList WhenNoHistory</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsAllToolCalls Ordered ByExecutedAtDesc</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">FiltersByToolName</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">FiltersBySuccess</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Pagination WithLimit</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Pagination WithOffset</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/jobs/{id}/runs/{runId}/artifacts (3 tests)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsNotFound WhenRunDoesNotExist</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsEmptyList WhenNoArtifacts</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsArtifacts WithMetadata</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/jobs/{id}/state-history (3 tests)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsNotFound WhenJobDoesNotExist</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsEmptyList WhenNoStateChanges</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsStateChanges OrderedByTimestamp</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/tools/{name} (2 tests)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsNotFound WhenToolDoesNotExist</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsTool DetailWithUsageStats</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/agent-profiles/default (1 test)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsDefaultProfile WithModelAndMaxTokens</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/tool-approvals (3 tests)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsEmptyList WhenNoApprovals</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsApprovals OrderedByTimestampDesc</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">FiltersByToolName</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/jobs/{id}/runs/latest (2 tests)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsNotFound WhenNoRuns</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsLatestRun WithEventCount</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/jobs/{id}/runs/{runId} (1 test)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsFullDetail WithEventStats</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/jobs/{id}/runs/{runId}/logs (2 tests)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsTextFile WithCorrectFormat</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsJsonFile WithCorrectFormat</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/runs/search (4 tests)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">ReturnsEmptyList WhenNoMatches</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">FiltersByStatus</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">FiltersByJobId</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">FiltersByDateRange</div></div></div>
+
+      <div style="font-weight:600;color:var(--primary-light);margin:12px 0 8px;font-size:0.85rem;">GET /api/scheduler/health (1 placeholder)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">SchedulerHealth &mdash; placeholder for future Scheduler service tests</div></div></div>
+
+      <div style="font-weight:600;color:var(--coral);margin:16px 0 8px;font-size:0.85rem;">Additional Gateway CRUD Coverage (8 tests)</div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Jobs List &mdash; ReturnsEmptyList WhenNoJobs</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Jobs List &mdash; ReturnsAllJobs OrderedByCreatedAtDesc</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Jobs Get &mdash; ReturnsNotFound WhenJobDoesNotExist</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Jobs Get &mdash; ReturnsJob WithDetails</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Jobs Create &mdash; Returns201Created WithJobId</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Jobs Delete &mdash; ReturnsNoContent OnSuccess</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Tools List &mdash; ReturnsRegistered Tools</div></div></div>
+      <div class="test-item"><span class="test-icon pass">&#x2713;</span><div><div class="test-name">Health Checks &mdash; Gateway HealthEndpoint ReturnsHealthy</div></div></div>
     </div>
   </div>
 <!-- END_UNIT_INTEGRATION -->
@@ -909,7 +984,8 @@ body{
   </details>
 </section>
 <footer class="footer">
-  &#x1F980; OpenClaw .NET &mdash; Built with .NET 10, Aspire, Blazor, SignalR, Ollama &amp; &#x2764;&#xFE0F; by <a href="https://github.com/elbruno" style="color:var(--teal);text-decoration:none">Bruno Capuano</a>
+  &#x1F980; OpenClaw .NET &mdash; Built with .NET 10, Aspire, Blazor, SignalR, Ollama &amp; &#x2764;&#xFE0F; by <a href="https://github.com/elbruno" style="color:var(--teal);text-decoration:none">Bruno Capuano</a><br>
+  <span style="font-size:0.75rem;opacity:0.6;margin-top:4px;display:inline-block">Dashboard updated: April 24, 2026 &mdash; REST coverage expansion (102 integration tests)</span>
 </footer>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
