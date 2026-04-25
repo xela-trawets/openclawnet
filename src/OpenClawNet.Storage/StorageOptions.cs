@@ -43,6 +43,15 @@ public sealed class StorageOptions
     public string ModelsPath => Path.Combine(RootPath, ModelsFolderName);
 
     /// <summary>
+    /// Subfolder name (under <see cref="RootPath"/>) for agent outputs and working files.
+    /// Default: <c>agents</c>.
+    /// </summary>
+    public string AgentsFolderName { get; set; } = "agents";
+
+    /// <summary>Absolute path for agent outputs: {RootPath}/agents</summary>
+    public string AgentsPath => Path.Combine(RootPath, AgentsFolderName);
+
+    /// <summary>
     /// Returns (and creates if missing) a per-tool subfolder under the binary
     /// artifacts path. Example: <c>BinaryFolderForTool("text-to-image")</c> →
     /// <c>{RootPath}/binary/text-to-image/</c>.
@@ -54,12 +63,56 @@ public sealed class StorageOptions
         return folder;
     }
 
-    /// <summary>Ensures <see cref="RootPath"/>, binary, and models directories exist.</summary>
+    /// <summary>
+    /// Returns (and creates if missing) a per-agent subfolder: {RootPath}/agents/{agentName}/.
+    /// Sanitizes agent name to prevent path traversal attacks.
+    /// </summary>
+    public string AgentFolderForName(string agentName)
+    {
+        var sanitized = SanitizeAgentName(agentName);
+        var primaryPath = Path.Combine(AgentsPath, sanitized);
+        
+        try
+        {
+            Directory.CreateDirectory(primaryPath);
+            return primaryPath;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Fallback to LocalApplicationData when primary path is inaccessible
+            var fallbackPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "OpenClawNet", "agents", sanitized);
+            Directory.CreateDirectory(fallbackPath);
+            return fallbackPath;
+        }
+    }
+
+    /// <summary>Sanitizes agent names to prevent path traversal attacks. Replaces .. / \ with _</summary>
+    private static string SanitizeAgentName(string agentName)
+    {
+        if (string.IsNullOrWhiteSpace(agentName))
+            throw new ArgumentException("Agent name cannot be null or whitespace.", nameof(agentName));
+
+        var sanitized = agentName
+            .Replace("..", "_")
+            .Replace("/", "_")
+            .Replace("\\", "_")
+            .Replace("\0", "_");
+
+        if (string.IsNullOrWhiteSpace(sanitized) || sanitized.All(c => c == '_' || c == '.'))
+            throw new ArgumentException($"Invalid agent name after sanitization: {agentName}", nameof(agentName));
+
+        return sanitized;
+    }
+
+    /// <summary>Ensures <see cref="RootPath"/>, binary, models, and agents directories exist.</summary>
     public void EnsureDirectories()
     {
         Directory.CreateDirectory(RootPath);
         Directory.CreateDirectory(BinaryArtifactsPath);
         Directory.CreateDirectory(ModelsPath);
+        Directory.CreateDirectory(AgentsPath);
     }
 
     private static string DefaultRootPath() =>
