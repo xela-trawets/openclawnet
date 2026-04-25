@@ -309,6 +309,7 @@ app.MapSettingsEndpoints();
 app.MapChatDebugEndpoints();
 app.MapChannelEndpoints();
 app.MapChannelsApiEndpoints();
+app.MapJobChannelConfigEndpoints();
 app.MapDemoEndpoints();
 app.MapAgentProfileEndpoints();
 app.MapModelProviderEndpoints();

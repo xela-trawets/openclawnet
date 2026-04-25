@@ -24,6 +24,7 @@ public class OpenClawDbContext : DbContext
     public DbSet<ToolTestRecord> ToolTestRecords => Set<ToolTestRecord>();
     public DbSet<SecretEntity> Secrets => Set<SecretEntity>();
     public DbSet<JobRunArtifact> JobRunArtifacts => Set<JobRunArtifact>();
+    public DbSet<JobChannelConfiguration> JobChannelConfigurations => Set<JobChannelConfiguration>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -153,6 +154,18 @@ public class OpenClawDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(a => new { a.JobId, a.CreatedAt }).IsDescending(false, true);
             e.HasIndex(a => new { a.JobRunId, a.Sequence });
+        });
+        
+        modelBuilder.Entity<JobChannelConfiguration>(e =>
+        {
+            e.ToTable("JobChannelConfigurations");
+            e.HasKey(c => c.Id);
+            e.HasOne(c => c.Job)
+                .WithMany()
+                .HasForeignKey(c => c.JobId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(c => new { c.JobId, c.ChannelType }).IsUnique();
+            e.Property(c => c.IsEnabled).HasDefaultValue(false);
         });
     }
 }
