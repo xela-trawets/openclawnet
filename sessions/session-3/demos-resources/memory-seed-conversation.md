@@ -11,7 +11,7 @@ The topic mix is intentional — three different frameworks, a couple of persona
 1. `I'm building a distributed app in .NET Aspire. What does the AppHost project actually do at runtime?`
 2. `Got it. Now compare that to Dapr — how do they overlap?`
 3. `Which one would you pick for a new greenfield project where the team has no prior service-mesh experience?`
-4. `Switching topics — what's the current state of Blazor United (server + WASM hybrid render modes) in net9.0?`
+4. `Switching topics — what's the current state of Blazor United (server + WASM hybrid render modes) in net10.0?`
 5. `When does interactive server rendering make more sense than interactive WebAssembly?`
 6. `Show me the smallest possible component that switches render mode based on a query string.`
 7. `Now the database side — I want EF Core with PostgreSQL via Npgsql. Any gotchas around connection pooling under Aspire?`
@@ -22,7 +22,7 @@ The topic mix is intentional — three different frameworks, a couple of persona
 12. `Tests next. I prefer xUnit. Walk me through testing a minimal API endpoint that depends on a Postgres-backed service.`
 13. `For integration tests, should I use Testcontainers or the Aspire test host?`
 14. `My team is split on dependency injection scopes. When should an HttpClient be registered as singleton vs typed-client vs IHttpClientFactory?`
-15. `One more — I keep seeing "ahead-of-time compilation" mentioned for ASP.NET Core. Is AOT production-ready for minimal APIs in net9.0?`
+15. `One more — I keep seeing "ahead-of-time compilation" mentioned for ASP.NET Core. Is AOT production-ready for minimal APIs in net10.0?`
 16. `What breaks under AOT that I should watch for?`
 17. `Auth: I want OIDC against Entra ID. Is there a clean Aspire integration or do I wire it up manually?`
 18. `If I add a Blazor WebAssembly client, what's the recommended way to share the auth token with API calls?`
