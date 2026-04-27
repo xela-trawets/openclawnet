@@ -276,6 +276,43 @@ dotnet test tests\OpenClawNet.PlaywrightTests `
 
 ---
 
+### Demo 1b — Add a Skill, Use It (Aspire already running)
+
+**What it shows:** Same pirate skill journey as Demo 1, but ATTACHES to an already-running Aspire instance. The Aspire dashboard stays visible to the audience throughout. Perfect for stage demos where you want the dashboard in frame.
+
+**When to use this:** Live conference demos, voice-over recording, or any scenario where you've already spun up Aspire and want the dashboard visible behind the browser. For automated CI/regression coverage, use Demo 1 instead (in-process Aspire boot).
+
+**Terminal 1 (start Aspire first):**
+
+```powershell
+aspire start src\OpenClawNet.AppHost
+# Wait for green health checks + dashboard (http://localhost:15178)
+```
+
+**Terminal 2 (run the test):**
+
+```powershell
+$env:NUGET_PACKAGES = "$env:USERPROFILE\.nuget\packages2"
+$env:PLAYWRIGHT_HEADED = "true"
+$env:PLAYWRIGHT_SLOWMO = "1500"   # tune to your pitch: 800=fast, 1500=default, 2500=slow
+
+# Optional: override URLs if your ports differ (use `aspire show-links` to find actual URLs)
+# $env:OPENCLAW_WEB_URL = "https://localhost:7294"
+# $env:OPENCLAW_GATEWAY_URL = "https://localhost:7067"
+
+dotnet test tests\OpenClawNet.PlaywrightTests `
+  --filter "Category=DemoLive&FullyQualifiedName~PirateJourneyAttachedTests" `
+  --logger "console;verbosity=normal"
+```
+
+**Voice-over beats** (same as Demo 1):
+1. *"Watch the skill toggle flip — that's a single API call, no rebuild."*
+2. *"Now we open a fresh chat — the prompt composer just inlined the pirate skill into the system prompt."*
+3. *"The reply comes back in character. Same model, same code — different Markdown file."*
+4. *"And notice: the Aspire dashboard stayed visible the whole time — no UI surprise for the audience."*
+
+---
+
 ### Demo 2 — Tool Approval Flow (security gate live)
 
 **What it shows:** Agent calls a tool that requires approval → UI pauses, shows the approval card → user clicks **Approve** → execution resumes. The "human in the loop" guardrail in action.
