@@ -32,6 +32,7 @@ public static class StorageServiceCollectionExtensions
         services.AddScoped<IToolTestRecordStore, ToolTestRecordStore>();
         services.AddScoped<ISecretsStore, SecretsStore>();
         services.AddSingleton<OpenClawNet.Mcp.Abstractions.IMcpServerCatalog, McpServerCatalog>();
+        services.AddScoped<Services.SkillImportService>();
 
         return services;
     }

@@ -52,6 +52,15 @@ public sealed class StorageOptions
     public string AgentsPath => Path.Combine(RootPath, AgentsFolderName);
 
     /// <summary>
+    /// Subfolder name (under <see cref="RootPath"/>) for user-imported skills.
+    /// Default: <c>skills</c>.
+    /// </summary>
+    public string SkillsFolderName { get; set; } = "skills";
+
+    /// <summary>Absolute path for user-imported skills: {RootPath}/skills</summary>
+    public string SkillsPath => Path.Combine(RootPath, SkillsFolderName);
+
+    /// <summary>
     /// Returns (and creates if missing) a per-tool subfolder under the binary
     /// artifacts path. Example: <c>BinaryFolderForTool("text-to-image")</c> →
     /// <c>{RootPath}/binary/text-to-image/</c>.
@@ -106,13 +115,14 @@ public sealed class StorageOptions
         return sanitized;
     }
 
-    /// <summary>Ensures <see cref="RootPath"/>, binary, models, and agents directories exist.</summary>
+    /// <summary>Ensures <see cref="RootPath"/>, binary, models, agents, and skills directories exist.</summary>
     public void EnsureDirectories()
     {
         Directory.CreateDirectory(RootPath);
         Directory.CreateDirectory(BinaryArtifactsPath);
         Directory.CreateDirectory(ModelsPath);
         Directory.CreateDirectory(AgentsPath);
+        Directory.CreateDirectory(SkillsPath);
     }
 
     private static string DefaultRootPath() =>

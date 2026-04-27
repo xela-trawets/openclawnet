@@ -2,6 +2,12 @@
 @rendermode InteractiveServer
 @inject IConfiguration Configuration
 @inject IHttpClientFactory HttpClientFactory
+@inject IJSRuntime JS
+@using System.IO
+@using System.IO.Compression
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using Microsoft.AspNetCore.Components.Forms
 
 <PageTitle>OpenClaw .NET - Skills</PageTitle>
 
@@ -33,7 +39,20 @@
         <button class="btn btn-outline-secondary btn-sm" @onclick="ReloadSkills" disabled="@_loading">
             @if (_loading) { <span class="spinner-border spinner-border-sm me-1"></span> } 🔄 Reload
         </button>
+        <button class="btn btn-primary btn-sm" @onclick="OnImportClick" disabled="@_importing">
+            @if (_importing) { <span class="spinner-border spinner-border-sm me-1"></span> } ⬇️ Import Skill
+        </button>
+        <InputFile @ref="_fileInput" OnChange="OnFileSelected" style="display:none;" accept=".md,.zip" />
     </div>
+
+    @* Toast notifications *@
+    @if (!string.IsNullOrEmpty(_toastMessage))
+    {
+        <div class="alert alert-@(_toastIsError ? "danger" : "success") alert-dismissible fade show mb-3" role="alert">
+            @_toastMessage
+            <button type="button" class="btn-close" @onclick="ClearToast"></button>
+        </div>
+    }
 
     @if (_loading)
     {
@@ -141,8 +160,12 @@ else if (_tab == "marketplace")
     private HashSet<string> _installing = new(StringComparer.OrdinalIgnoreCase);
     private bool _loading;
     private bool _marketplaceLoading;
+    private bool _importing;
     private string? _marketplaceError;
     private string _gatewayUrl = string.Empty;
+    private string? _toastMessage;
+    private bool _toastIsError;
+    private InputFile? _fileInput;
 
     protected override async Task OnInitializedAsync()
     {
@@ -240,4 +263,114 @@ else if (_tab == "marketplace")
     // DTOs matching Gateway JSON
     private sealed record SkillDefinitionDto(string Name, string? Description, string? Category, bool Enabled, string[]? Tags, string? Source);
     private sealed record MarketplaceItemDto(string Name, string ContentUrl, string GitHubUrl);
+    private sealed record ImportResponse(bool Success, string SkillName, string Message);
+    private sealed record ErrorResponse(bool Success, string Error);
+
+    private void ClearToast()
+    {
+        _toastMessage = null;
+        _toastIsError = false;
+    }
+
+    private void ShowToast(string message, bool isError = false)
+    {
+        _toastMessage = message;
+        _toastIsError = isError;
+        StateHasChanged();
+        _ = Task.Delay(5000).ContinueWith(_ =>
+        {
+            ClearToast();
+            StateHasChanged();
+        });
+    }
+
+    private async Task OnImportClick()
+    {
+        if (_fileInput is null) return;
+        
+        try
+        {
+            // Use the InputFileInterop helper if available
+            // For now, we'll trigger via a workaround using the element reference
+            await JS.InvokeVoidAsync("document.querySelector", "input[accept='.md,.zip']").ConfigureAwait(false);
+        }
+        catch
+        {
+            // Fallback: just trigger the input via a simple approach
+        }
+        finally
+        {
+            // Note: The Blazor InputFile component doesn't expose a click method
+            // So we'll use JavaScript to trigger the native input element
+            try
+            {
+                await JS.InvokeVoidAsync("eval", 
+                    "document.querySelector('input[accept=\".md,.zip\"]').click()");
+            }
+            catch (Exception ex)
+            {
+                ShowToast($"❌ Error opening file picker: {ex.Message}", isError: true);
+            }
+        }
+    }
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        _importing = true;
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            // Validate file type
+            if (!file.Name.EndsWith(".md", StringComparison.OrdinalIgnoreCase) && 
+                !file.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowToast("❌ Please select a .md or .zip file", isError: true);
+                return;
+            }
+
+            // Read file into memory
+            using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024); // 5MB max
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            ShowToast("⏳ Importing skill...");
+
+            // Create multipart form data
+            var content = new MultipartFormDataContent();
+            content.Add(new StreamContent(memoryStream), "file", file.Name);
+
+            // Upload to API
+            var client = HttpClientFactory.CreateClient("gateway");
+            var response = await client.PostAsync("api/skills/import", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ImportResponse>(jsonContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                await LoadSkillsAsync();
+                ShowToast($"✅ Skill imported: {result?.SkillName ?? "Unknown"}");
+            }
+            else
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var errorResult = JsonSerializer.Deserialize<ErrorResponse>(jsonContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                ShowToast($"❌ Import failed: {errorResult?.Error ?? "Unknown error"}", isError: true);
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            ShowToast($"❌ Import failed: {ex.Message}", isError: true);
+        }
+        catch (Exception ex)
+        {
+            ShowToast($"❌ Error: {ex.Message}", isError: true);
+        }
+        finally
+        {
+            _importing = false;
+        }
+    }
 }
