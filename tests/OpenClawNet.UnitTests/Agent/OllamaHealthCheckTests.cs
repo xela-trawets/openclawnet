@@ -5,8 +5,9 @@ using FluentAssertions;
 using Moq;
 using OpenClawNet.Models.Abstractions;
 using OpenClawNet.UnitTests.Fixtures;
+using Xunit;
 
-namespace OpenClawNet.IntegrationTests;
+namespace OpenClawNet.UnitTests.Agent;
 
 public sealed class OllamaHealthCheckTests
 {
