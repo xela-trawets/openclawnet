@@ -55,7 +55,7 @@ Same agent, different users — and you want them to see different behavior. Thi
 | 📖 Guía (Español) | [session-3-guide-es.md](../session-3-guide-es.md) |
 | 🎤 Speaker Script | [speaker-script.md](./speaker-script.md) |
 | 🤖 Copilot Prompts | [copilot-prompts.md](./copilot-prompts.md) |
-| 🖥️ Slides | [slides.md](./slides.md) |
+| 🖥️ Slides | _TBD_ |
 
 ## Git Checkpoints
 
