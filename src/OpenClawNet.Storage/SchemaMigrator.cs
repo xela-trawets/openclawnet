@@ -106,6 +106,9 @@ public static class SchemaMigrator
         // AgentProfiles table: Kind discriminator (Standard | System | ToolTester)
         await AddColumnIfMissingAsync(db, "AgentProfiles", "Kind", "TEXT NOT NULL DEFAULT 'Standard'");
 
+        // AgentProfiles table: Model column — re-added in commit c5c12a9 for per-profile model selection
+        await AddColumnIfMissingAsync(db, "AgentProfiles", "Model", "TEXT");
+
         // Messages table: Tool approval bubbles — Phase A
         await AddColumnIfMissingAsync(db, "Messages", "MessageType", "TEXT DEFAULT 'Chat'");
         await AddColumnIfMissingAsync(db, "Messages", "ToolName", "TEXT");
@@ -381,10 +384,9 @@ public static class SchemaMigrator
         await CreateIndexIfMissingAsync(db, "IX_AdapterDeliveryLogs_CreatedAt",
             "CREATE INDEX IX_AdapterDeliveryLogs_CreatedAt ON AdapterDeliveryLogs(CreatedAt)");
 
-        // PR-F: drop the legacy AgentProfiles.Model column.The agent now references a
-        // ModelProviderDefinition whose own Model field is authoritative — see Bruno's
-        // directive on the agent-UI redesign. Idempotent via the SchemaVersions marker.
-        await DropAgentProfileModelColumnAsync(db);
+        // PR-F reverted by commit c5c12a9: Model column is REQUIRED for per-profile model selection.
+        // Tests create profiles with explicit Model values (e.g. "gemma4:e2b"). Do NOT drop this column.
+        // await DropAgentProfileModelColumnAsync(db);
 
         // PR-E: destructive seed of the 4 bundled MCP servers + remap of legacy
         // EnabledTools entries. Gated by the SchemaVersion marker so it runs once.
