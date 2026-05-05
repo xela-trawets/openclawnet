@@ -57,7 +57,7 @@ public class BlazorNavigationTests : PlaywrightTestBase
     }
 
     [Theory]
-    [InlineData("/", "Chat")]
+    [InlineData("/", "OpenClawNet")]
     [InlineData("/sessions", "Sessions")]
     [InlineData("/tools", "Tools")]
     [InlineData("/tool-log", "Tool Execution Log")]
