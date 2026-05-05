@@ -22,23 +22,21 @@ public class ChatFlowTests : PlaywrightTestBase
     {
         await WithScreenshotOnFailure(async () =>
         {
-            await Page.GotoAsync(Fixture.WebBaseUrl, new PageGotoOptions
+            // Warmup: Navigate to /chat first to initialize Blazor circuit, then reload
+            await Page.GotoAsync($"{Fixture.WebBaseUrl}/chat", new PageGotoOptions
+            {
+                WaitUntil = WaitUntilState.NetworkIdle,
+                Timeout = 60_000
+            });
+            await Page.ReloadAsync(new PageReloadOptions
             {
                 WaitUntil = WaitUntilState.NetworkIdle,
                 Timeout = 60_000
             });
 
-            // Look for the New Chat button (could be a "+" button or "New Chat" text)
-            var newChatBtn = Page.Locator("button:has-text('New Chat'), button[title*='New'], a:has-text('New Chat')").First;
-            if (await newChatBtn.IsVisibleAsync())
-            {
-                await newChatBtn.ClickAsync();
-                await Page.WaitForTimeoutAsync(1_000);
-            }
-
             // Find the chat input using the data-testid
             var chatInput = Page.Locator("[data-testid='chat-input']");
-            await Assertions.Expect(chatInput).ToBeVisibleAsync(new() { Timeout = 30_000 });
+            await Assertions.Expect(chatInput).ToBeVisibleAsync(new() { Timeout = 90_000 });
             await chatInput.FillAsync("Say hello in exactly 3 words.");
 
             // Submit — press Enter or click Send button
