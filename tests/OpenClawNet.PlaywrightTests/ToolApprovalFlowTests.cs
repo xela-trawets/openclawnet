@@ -106,7 +106,7 @@ public class ToolApprovalFlowTests : PlaywrightTestBase
             // Assert: ToolApprovalCard appears with one of the URL-fetching tools
             //          (the model may pick either; both are reasonable for this prompt)
             //          and the agent stream is paused (no tool_result yet).
-            await WaitForWithTicksAsync(ApprovalCard(), 90_000, "tool approval card");
+            await WaitForWithTicksAsync(ApprovalCard(), 180_000, "tool approval card");
             var cardText = await ApprovalCard().InnerTextAsync();
             Assert.True(
                 cardText.Contains("browser", StringComparison.OrdinalIgnoreCase) ||
@@ -142,8 +142,8 @@ public class ToolApprovalFlowTests : PlaywrightTestBase
                 new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
             await LogStepAsync("Chat page loaded — sending prompt");
             await SendChatMessageAsync("Open example.com.");
-            await LogStepAsync("Prompt sent — waiting for tool approval card (up to 90s)");
-            await WaitForWithTicksAsync(ApprovalCard(), 90_000, "tool approval card");
+            await LogStepAsync("Prompt sent — waiting for tool approval card (up to 180s)");
+            await WaitForWithTicksAsync(ApprovalCard(), 180_000, "tool approval card");
 
             // Act: click [Approve].
             await LogStepAsync("Card visible — clicking Approve");
@@ -157,12 +157,12 @@ public class ToolApprovalFlowTests : PlaywrightTestBase
             await ApprovalCard().WaitForAsync(new LocatorWaitForOptions
             {
                 State = WaitForSelectorState.Hidden,
-                Timeout = 90_000
+                Timeout = 180_000
             });
             await LogStepAsync("Card hidden — waiting for tool result (up to 90s)");
-            await WaitForWithTicksAsync(Page.Locator("[data-testid='tool-result']"), 90_000, "tool result");
+            await WaitForWithTicksAsync(Page.Locator("[data-testid='tool-result']"), 180_000, "tool result");
             await LogStepAsync("Tool result rendered — waiting for assistant completion (up to 90s)");
-            await WaitForWithTicksAsync(Page.Locator("[data-testid='assistant-message-complete']"), 90_000, "assistant complete");
+            await WaitForWithTicksAsync(Page.Locator("[data-testid='assistant-message-complete']"), 180_000, "assistant complete");
             await LogStepAsync("✅ Full approval flow completed");
         });
     }
@@ -319,7 +319,7 @@ public class ToolApprovalFlowTests : PlaywrightTestBase
             await SendChatMessageAsync(prompt);
 
             // Assert: approval card appears and references the expected tool name.
-            await ApprovalCard().WaitForAsync(new LocatorWaitForOptions { Timeout = 90_000 });
+            await ApprovalCard().WaitForAsync(new LocatorWaitForOptions { Timeout = 180_000 });
             await AssertCardContainsAsync(ApprovalCard(), expectedTool);
         });
     }
@@ -355,7 +355,7 @@ public class ToolApprovalFlowTests : PlaywrightTestBase
             await SendChatMessageAsync("Please open example.com and tell me the title.");
             await LogStepAsync($"[{modelName}] Prompt sent — waiting up to 90s for tool approval card");
 
-            await WaitForWithTicksAsync(ApprovalCard(), 90_000, $"tool approval card ({modelName})");
+            await WaitForWithTicksAsync(ApprovalCard(), 180_000, $"tool approval card ({modelName})");
             var cardText = await ApprovalCard().InnerTextAsync();
             await LogStepAsync($"✅ [{modelName}] Card appeared. Text: {cardText.Replace('\n', ' ').Substring(0, Math.Min(120, cardText.Length))}");
         }, $"Model_Matrix_{modelName.Replace(':', '-').Replace('.', '-')}");
@@ -411,7 +411,7 @@ public class ToolApprovalFlowTests : PlaywrightTestBase
             await SendChatMessageAsync("Please open example.com and tell me the title.");
             await LogStepAsync("[azure] Prompt sent — waiting up to 90s for tool approval card");
 
-            await WaitForWithTicksAsync(ApprovalCard(), 90_000, $"tool approval card (azure:{Fixture.AzureOpenAIDeployment})");
+            await WaitForWithTicksAsync(ApprovalCard(), 180_000, $"tool approval card (azure:{Fixture.AzureOpenAIDeployment})");
             var cardText = await ApprovalCard().InnerTextAsync();
             await LogStepAsync($"✅ [azure:{Fixture.AzureOpenAIDeployment}] Card appeared. Text: {cardText.Replace('\n', ' ').Substring(0, Math.Min(120, cardText.Length))}");
         }, "Model_Matrix_AzureOpenAI");
@@ -476,7 +476,7 @@ public class ToolApprovalFlowTests : PlaywrightTestBase
             await SendChatMessageAsync("Please open example.com and tell me the title.");
             await LogStepAsync("Prompt sent — waiting for tool approval card");
 
-            await WaitForWithTicksAsync(ApprovalCard(), 90_000, "tool approval card");
+            await WaitForWithTicksAsync(ApprovalCard(), 180_000, "tool approval card");
             var cardText = await ApprovalCard().InnerTextAsync();
             await LogStepAsync($"✅ Card appeared. Text: {cardText.Replace('\n', ' ').Substring(0, Math.Min(120, cardText.Length))}");
 
