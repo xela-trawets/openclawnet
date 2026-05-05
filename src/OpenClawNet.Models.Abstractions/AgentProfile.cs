@@ -12,6 +12,7 @@ public sealed class AgentProfile
     public required string Name { get; set; }
     public string? DisplayName { get; set; }
     public string? Provider { get; set; }
+    public string? Model { get; set; }
     public string? Endpoint { get; set; }
     public string? ApiKey { get; set; }
     public string? DeploymentName { get; set; }

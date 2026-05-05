@@ -49,6 +49,7 @@ public static class AgentProfileEndpoints
                 Name = name,
                 DisplayName = request.DisplayName,
                 Provider = request.Provider,
+                Model = request.Model,
                 Instructions = request.Instructions,
                 EnabledTools = request.EnabledTools is { Length: > 0 }
                     ? string.Join(", ", request.EnabledTools)
@@ -337,7 +338,7 @@ public static class AgentProfileEndpoints
     }
 
     private static AgentProfileResponse ToResponse(AgentProfile p) => new(
-        p.Name, p.DisplayName, p.Provider, p.Instructions,
+        p.Name, p.DisplayName, p.Provider, p.Model, p.Instructions,
         string.IsNullOrWhiteSpace(p.EnabledTools)
             ? null
             : p.EnabledTools.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
@@ -349,6 +350,7 @@ public sealed record AgentProfileResponse(
     string Name,
     string? DisplayName,
     string? Provider,
+    string? Model,
     string? Instructions,
     string[]? EnabledTools,
     double? Temperature,
@@ -376,6 +378,7 @@ public sealed record BulkDeleteAgentProfilesResponse(List<string> Deleted, List<
 public sealed record AgentProfileRequest(
     string? DisplayName,
     string? Provider,
+    string? Model,
     string? Instructions,
     string[]? EnabledTools,
     double? Temperature,

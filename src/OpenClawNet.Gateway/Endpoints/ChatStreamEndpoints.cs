@@ -102,7 +102,7 @@ public static class ChatStreamEndpoints
                 {
                     SessionId = request.SessionId,
                     UserMessage = request.Message,
-                    Model = request.Model ?? resolvedProvider?.Model,
+                    Model = request.Model ?? profile.Model ?? resolvedProvider?.Model,
                     Provider = resolvedProvider?.ProviderType ?? profile.Provider,
                     AgentProfileName = profile.Name,
                     AgentProfileInstructions = profile.Instructions,

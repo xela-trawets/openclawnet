@@ -78,6 +78,7 @@ public sealed class AgentProfileStore : IAgentProfileStore
         {
             existing.DisplayName = profile.DisplayName;
             existing.Provider = profile.Provider;
+            existing.Model = profile.Model;
             existing.Endpoint = profile.Endpoint;
             existing.ApiKey = profile.ApiKey;
             existing.DeploymentName = profile.DeploymentName;
@@ -99,6 +100,7 @@ public sealed class AgentProfileStore : IAgentProfileStore
                 Name = profile.Name,
                 DisplayName = profile.DisplayName,
                 Provider = profile.Provider,
+                Model = profile.Model,
                 Endpoint = profile.Endpoint,
                 ApiKey = profile.ApiKey,
                 DeploymentName = profile.DeploymentName,
@@ -155,6 +157,7 @@ public sealed class AgentProfileStore : IAgentProfileStore
         Name = entity.Name,
         DisplayName = entity.DisplayName,
         Provider = entity.Provider,
+        Model = entity.Model,
         Endpoint = entity.Endpoint,
         ApiKey = entity.ApiKey,
         DeploymentName = entity.DeploymentName,
