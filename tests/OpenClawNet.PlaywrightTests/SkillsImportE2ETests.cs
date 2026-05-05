@@ -381,7 +381,9 @@ public class SkillsImportE2ETests : PlaywrightTestBase
                 var importButton = Page.Locator("[data-testid='skills-import-button']");
                 await importButton.ClickAsync();
 
+                // Wait for modal and file input to be mounted
                 var fileInput = Page.Locator("input[type='file']").First;
+                await fileInput.WaitForAsync(new() { State = WaitForSelectorState.Attached, Timeout = 10_000 });
                 await fileInput.SetInputFilesAsync(tempTxtFile);
                 await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
                 await Task.Delay(500);
@@ -410,10 +412,12 @@ public class SkillsImportE2ETests : PlaywrightTestBase
                     """;
 
                 await File.WriteAllTextAsync(tempBadMdFile, badContent);
-                await LogStepAsync("📝 Created .md file with invalid frontmatter");
 
                 await importButton.ClickAsync();
+                await LogStepAsync("📝 Created .md file with invalid frontmatter - import button clicked");
+                // Wait for modal and file input to be mounted
                 var fileInput2 = Page.Locator("input[type='file']").First;
+                await fileInput2.WaitForAsync(new() { State = WaitForSelectorState.Attached, Timeout = 10_000 });
                 await fileInput2.SetInputFilesAsync(tempBadMdFile);
                 await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
                 await Task.Delay(500);
@@ -552,7 +556,9 @@ public class SkillsImportE2ETests : PlaywrightTestBase
 
                 // Attempt to upload empty zip
                 await importButton.ClickAsync();
+                // Wait for modal and file input to be mounted
                 var fileInput = Page.Locator("input[type='file']").First;
+                await fileInput.WaitForAsync(new() { State = WaitForSelectorState.Attached, Timeout = 10_000 });
                 await fileInput.SetInputFilesAsync(emptyZip);
                 await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
                 await Task.Delay(500);
@@ -585,10 +591,12 @@ public class SkillsImportE2ETests : PlaywrightTestBase
                     """;
 
                 await File.WriteAllTextAsync(specialFile, specialContent);
-                await LogStepAsync($"📝 Created file with special characters: {specialName}");
 
                 await importButton.ClickAsync();
+                await LogStepAsync($"📝 Created file with special characters: {specialName} - import button clicked");
+                // Wait for modal and file input to be mounted
                 var fileInput2 = Page.Locator("input[type='file']").First;
+                await fileInput2.WaitForAsync(new() { State = WaitForSelectorState.Attached, Timeout = 10_000 });
                 await fileInput2.SetInputFilesAsync(specialFile);
                 await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
                 await Task.Delay(500);
