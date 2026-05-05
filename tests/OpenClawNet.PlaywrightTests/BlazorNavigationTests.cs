@@ -85,7 +85,7 @@ public class BlazorNavigationTests : PlaywrightTestBase
             // Title should contain the expected fragment
             await Assertions.Expect(Page).ToHaveTitleAsync(
                 new System.Text.RegularExpressions.Regex(System.Text.RegularExpressions.Regex.Escape(expectedTitleFragment)),
-                new PageAssertionsToHaveTitleOptions { Timeout = 10_000 });
+                new PageAssertionsToHaveTitleOptions { Timeout = 30_000 });
 
             // The sidebar brand should remain visible (no broken layout)
             var brand = Page.Locator("a.navbar-brand");

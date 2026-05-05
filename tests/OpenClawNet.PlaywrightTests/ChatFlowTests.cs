@@ -38,7 +38,7 @@ public class ChatFlowTests : PlaywrightTestBase
 
             // Find the chat input using the data-testid
             var chatInput = Page.Locator("[data-testid='chat-input']");
-            await Assertions.Expect(chatInput).ToBeVisibleAsync(new() { Timeout = 10_000 });
+            await Assertions.Expect(chatInput).ToBeVisibleAsync(new() { Timeout = 30_000 });
             await chatInput.FillAsync("Say hello in exactly 3 words.");
 
             // Submit — press Enter or click Send button

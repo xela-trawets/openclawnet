@@ -61,6 +61,14 @@ public class ActivityPanelExportTests : PlaywrightTestBase
 
             // Smaller font: .console-body computed font-size should be < 14px
             // (default Bootstrap body is 16px; we set 0.78rem ≈ 12.48px).
+            // First, expand the panel if it's collapsed (console-body only exists when expanded)
+            var toggleBtn = panel.Locator(".console-header button.btn-link").First;
+            if (!(await panel.Locator(".console-body").IsVisibleAsync()))
+            {
+                await toggleBtn.ClickAsync();
+                await panel.Locator(".console-body").WaitForAsync(new() { Timeout = 5_000 });
+            }
+            
             var fontSize = await panel.Locator(".console-body").EvaluateAsync<string>(
                 "el => getComputedStyle(el).fontSize");
             var px = double.Parse(fontSize.Replace("px", string.Empty), System.Globalization.CultureInfo.InvariantCulture);

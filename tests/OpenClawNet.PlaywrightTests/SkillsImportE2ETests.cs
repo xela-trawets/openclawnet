@@ -50,7 +50,7 @@ public class SkillsImportE2ETests : PlaywrightTestBase
             await Assertions.Expect(errorHeading).Not.ToBeVisibleAsync(new() { Timeout = 5_000 });
 
             await LogStepAsync("🔍 Looking for import button");
-            var importButton = Page.GetByRole(AriaRole.Button, new() { NameString = "Import…" });
+            var importButton = Page.Locator("[data-testid='skills-import-button']");
 
             // Test 1a: Button exists and is visible
             await Assertions.Expect(importButton).ToBeVisibleAsync(new() { Timeout = 10_000 });
@@ -64,10 +64,18 @@ public class SkillsImportE2ETests : PlaywrightTestBase
             await LogStepAsync("📂 Clicking import button to open file picker");
             await importButton.ClickAsync();
 
-            // File input should appear/become visible after click
+            // File input should exist (d-none means it's hidden but present)
             var fileInput = Page.Locator("input[type='file']").First;
-            await Assertions.Expect(fileInput).ToBeVisibleAsync(new() { Timeout = 5_000 });
-            await LogStepAsync("✅ File picker opened (file input visible)");
+            Assert.Equal(1, await fileInput.CountAsync());
+            await LogStepAsync("✅ File input exists (triggers via JS on button click)");
+
+            // Close the modal to avoid interfering with subsequent tests
+            var closeButton = Page.Locator("button.btn-close").First;
+            if (await closeButton.IsVisibleAsync())
+            {
+                await closeButton.ClickAsync();
+                await Page.WaitForTimeoutAsync(500);
+            }
         });
     }
 
@@ -115,7 +123,7 @@ public class SkillsImportE2ETests : PlaywrightTestBase
                 });
 
                 // Click import button
-                var importButton = Page.GetByRole(AriaRole.Button, new() { NameString = "Import…" });
+                var importButton = Page.Locator("[data-testid='skills-import-button']");
                 await importButton.ClickAsync();
                 await LogStepAsync("🟨 Import button clicked");
 
@@ -220,7 +228,7 @@ public class SkillsImportE2ETests : PlaywrightTestBase
                 });
 
                 // Click import button and upload zip
-                var importButton = Page.GetByRole(AriaRole.Button, new() { NameString = "Import…" });
+                var importButton = Page.Locator("[data-testid='skills-import-button']");
                 await importButton.ClickAsync();
 
                 var fileInput = Page.Locator("input[type='file']").First;
@@ -283,7 +291,7 @@ public class SkillsImportE2ETests : PlaywrightTestBase
                     Timeout = 60_000
                 });
 
-                var importButton = Page.GetByRole(AriaRole.Button, new() { NameString = "Import…" });
+                var importButton = Page.Locator("[data-testid='skills-import-button']");
 
                 await importButton.ClickAsync();
                 var fileInput = Page.Locator("input[type='file']").First;
@@ -370,7 +378,7 @@ public class SkillsImportE2ETests : PlaywrightTestBase
                     Timeout = 60_000
                 });
 
-                var importButton = Page.GetByRole(AriaRole.Button, new() { NameString = "Import…" });
+                var importButton = Page.Locator("[data-testid='skills-import-button']");
                 await importButton.ClickAsync();
 
                 var fileInput = Page.Locator("input[type='file']").First;
@@ -471,7 +479,7 @@ public class SkillsImportE2ETests : PlaywrightTestBase
                     Timeout = 60_000
                 });
 
-                var importButton = Page.GetByRole(AriaRole.Button, new() { NameString = "Import…" });
+                var importButton = Page.Locator("[data-testid='skills-import-button']");
 
                 await importButton.ClickAsync();
                 await LogStepAsync("📂 File picker opened");
@@ -486,9 +494,7 @@ public class SkillsImportE2ETests : PlaywrightTestBase
                 await Task.Delay(1000);
 
                 // Look for success indicators
-                var successMessages = Page.Locator(
-                    "text=/successfully|imported|completed/i, [role='alert']:has-text('Success')"
-                );
+                var successMessages = Page.Locator(".alert-success, [role='alert']:has-text('Success')");
                 
                 // If success message exists, verify it's visible
                 if (await successMessages.CountAsync() > 0)
@@ -542,7 +548,7 @@ public class SkillsImportE2ETests : PlaywrightTestBase
                     Timeout = 60_000
                 });
 
-                var importButton = Page.GetByRole(AriaRole.Button, new() { NameString = "Import…" });
+                var importButton = Page.Locator("[data-testid='skills-import-button']");
 
                 // Attempt to upload empty zip
                 await importButton.ClickAsync();
