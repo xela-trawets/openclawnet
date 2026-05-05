@@ -32,12 +32,12 @@ public static class SkillImportEndpoints
 {
     public static void MapSkillImportEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/skills/import").WithTags("Skills.Import");
-
-        group.MapPost("/preview", PostPreview).WithName("PostSkillImportPreview");
-        group.MapPost("/confirm", PostConfirm).WithName("PostSkillImportConfirm");
-        group.MapPost("/", PostImportFile)
+        // Register endpoints WITHOUT group to avoid trailing slash issues
+        app.MapPost("/api/skills/import/preview", PostPreview).WithName("PostSkillImportPreview").WithTags("Skills.Import");
+        app.MapPost("/api/skills/import/confirm", PostConfirm).WithName("PostSkillImportConfirm").WithTags("Skills.Import");
+        app.MapPost("/api/skills/import", PostImportFile)
             .WithName("PostSkillImportFile")
+            .WithTags("Skills.Import")
             .Accepts<IFormFile>("multipart/form-data")
             .WithDescription("Import a skill from a local .md file or .zip folder archive via FormData");
     }
@@ -99,6 +99,7 @@ public static class SkillImportEndpoints
         ILogger<GatewayProgramMarker> logger,
         CancellationToken ct)
     {
+        logger.LogInformation("🟢 PostImportFile: Entered endpoint");
         if (!httpContext.Request.HasFormContentType)
             return Problem(StatusCodes.Status400BadRequest, "InvalidRequest", "Expected multipart/form-data.");
 
@@ -114,6 +115,7 @@ public static class SkillImportEndpoints
         }
 
         var file = form.Files.GetFile("file") ?? form.Files.FirstOrDefault();
+        logger.LogInformation("🟢 PostImportFile: File received: {FileName}, Size: {FileSize}", file?.FileName ?? "null", file?.Length ?? 0);
         if (file is null || file.Length <= 0)
             return Problem(StatusCodes.Status400BadRequest, "InvalidRequest", "No file in multipart payload.");
 
@@ -127,7 +129,10 @@ public static class SkillImportEndpoints
             using var reader = new StreamReader(stream);
             var content = await reader.ReadToEndAsync().ConfigureAwait(false);
 
+            logger.LogInformation("🟢 PostImportFile: Calling ImportMarkdownFileAsync for {FileName}", fileName);
             var result = await importer.ImportMarkdownFileAsync(content, fileName, ct).ConfigureAwait(false);
+            logger.LogInformation("🟢 PostImportFile: ImportMarkdownFileAsync result: Success={Success}, SkillName={SkillName}", 
+                result.Success, result.Value?.SkillName ?? "null");
             if (result.Success)
             {
                 return Results.Created(

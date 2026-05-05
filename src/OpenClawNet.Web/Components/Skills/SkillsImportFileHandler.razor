@@ -189,11 +189,11 @@
             memoryStream.Seek(0, SeekOrigin.Begin);
 
             // Upload to API
-            using var client = HttpClientFactory.CreateClient();
+            using var client = HttpClientFactory.CreateClient("gateway");
             using var content = new MultipartFormDataContent();
             content.Add(new StreamContent(memoryStream), "file", file.Name);
 
-            var response = await client.PostAsync("/api/skills/import", content);
+            var response = await client.PostAsync("api/skills/import", content);
 
             if (response.IsSuccessStatusCode)
             {
