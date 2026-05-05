@@ -18,6 +18,7 @@ public sealed class AgentProfilesBulkDeleteTests(GatewayWebAppFactory factory) :
         var req = new AgentProfileRequest(
             DisplayName: name,
             Provider: null,
+            Model: null,
             Instructions: null,
             EnabledTools: null,
             Temperature: null,
