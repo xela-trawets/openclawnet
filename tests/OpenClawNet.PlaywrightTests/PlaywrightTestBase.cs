@@ -111,7 +111,8 @@ public abstract class PlaywrightTestBase : IAsyncLifetime
                     el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;'
                         + 'background:#ffeb3b;color:#000;font:600 14px/1.4 system-ui,sans-serif;'
                         + 'padding:8px 16px;border-bottom:2px solid #f57f17;'
-                        + 'box-shadow:0 2px 6px rgba(0,0,0,.2);';
+                        + 'box-shadow:0 2px 6px rgba(0,0,0,.2);'
+                        + 'pointer-events:none;';
                     document.body.appendChild(el);
                 }
                 el.textContent = '🧪 E2E: ' + text;
