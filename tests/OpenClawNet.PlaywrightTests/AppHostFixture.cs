@@ -100,6 +100,13 @@ public sealed class AppHostFixture : IAsyncLifetime
         // OPENCLAW_OLLAMA_MODEL is honoured first inside AppHost.cs:14-17.
         Environment.SetEnvironmentVariable("OPENCLAW_OLLAMA_MODEL", ToolCapableTestModel);
 
+        // Wave 5 fix (Petey): Wipe per-agent skill state from previous test runs to
+        // prevent skill contamination. The doc-processor system skill and any test-
+        // created skills (e.g., emoji-teacher-journey) persist across runs and can
+        // poison tool selection (e.g., model picks `shell` instead of `browser`).
+        // Safe to delete: this fixture is only used by E2E tests, not by dev users.
+        CleanAgentSkillState();
+
         // Best-effort probe of local Ollama; results expose IsToolCapableModelAvailable
         // so live tool-approval scenarios can Skip cleanly when the model isn't pulled.
         await ProbeOllamaModelAvailabilityAsync();
@@ -180,6 +187,40 @@ public sealed class AppHostFixture : IAsyncLifetime
             AzureOpenAIApiKey = apiKey;
             AzureOpenAIDeployment = deployment;
             IsAzureOpenAIAvailable = true;
+        }
+    }
+
+    /// <summary>
+    /// Wave 5 fix (Petey): Wipes the per-agent skill state folder so each test run
+    /// starts with a clean slate. Prevents skills from previous test runs (especially
+    /// doc-processor and emoji-teacher-journey) from contaminating tool selection.
+    /// </summary>
+    private void CleanAgentSkillState()
+    {
+        try
+        {
+            // The default storage root is C:\openclawnet on Windows. The per-agent
+            // skill enabled.json files live at C:\openclawnet\skills\agents\{agentName}\enabled.json.
+            var skillsAgentsPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                "openclawnet", "skills", "agents");
+
+            // Also check the legacy path (might exist on dev machines)
+            var legacyPath = Path.Combine("C:", "openclawnet", "skills", "agents");
+
+            foreach (var root in new[] { skillsAgentsPath, legacyPath })
+            {
+                if (Directory.Exists(root))
+                {
+                    Console.WriteLine($"[AppHostFixture] Cleaning agent skill state: {root}");
+                    Directory.Delete(root, recursive: true);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AppHostFixture] Warning: Could not clean agent skill state: {ex.Message}");
+            // Non-fatal — tests can still run with stale skill state; just log and continue.
         }
     }
 
